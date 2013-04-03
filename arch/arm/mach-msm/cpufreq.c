@@ -374,9 +374,6 @@ EXPORT_SYMBOL(msm_cpufreq_set_freq_limits);
 #ifdef CONFIG_LOW_CPUCLOCKS
 #define LOW_CPUCLOCKS_FREQ_MIN	162000
 #endif
-#ifdef CONFIG_CPU_OVERCLOCK
-#define CPU_OVERCLOCK_FREQ_MAX	2106000
-#endif
 
 static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 {
@@ -404,11 +401,7 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 #else
 		policy->cpuinfo.min_freq = CONFIG_MSM_CPU_FREQ_MIN;
 #endif
-#ifdef CONFIG_CPU_OVERCLOCK
-		policy->cpuinfo.max_freq = CPU_OVERCLOCK_FREQ_MAX;
-#else
 		policy->cpuinfo.max_freq = CONFIG_MSM_CPU_FREQ_MAX;
-#endif
 #endif
 	}
 #ifdef CONFIG_MSM_CPU_FREQ_SET_MIN_MAX
@@ -417,11 +410,7 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 #else
 	policy->min = CONFIG_MSM_CPU_FREQ_MIN;
 #endif
-#ifdef CONFIG_CPU_OVERCLOCK
-	policy->max = CPU_OVERCLOCK_FREQ_MAX;
-#else
 	policy->max = CONFIG_MSM_CPU_FREQ_MAX;
-#endif
 #endif
 
 	if (is_clk)
