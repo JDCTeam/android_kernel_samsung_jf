@@ -43,12 +43,7 @@
 #ifdef CONFIG_SEC_DEBUG_DCVS_LOG
 #include <mach/sec_debug.h>
 #endif
-
-#ifdef CONFIG_LOW_CPUCLOCKS
-#define FREQ_TABLE_SIZE		39
-#else
-#define FREQ_TABLE_SIZE		35
-#endif
+#include "krait-defines.h"
 
 /* MUX source selects. */
 #define PRI_SRC_SEL_SEC_SRC	0
@@ -975,7 +970,7 @@ void acpuclk_set_vdd(unsigned int khz, int vdd_uv) {
 		else if ( drv.acpu_freq_tbl[i].speed.khz == khz)
 			new_vdd_uv = min(max((unsigned int)vdd_uv,
 				(unsigned int)HFPLL_MIN_VDD), (unsigned int)HFPLL_MAX_VDD);
-		else 
+		else
 			continue;
 
 		drv.acpu_freq_tbl[i].vdd_core = new_vdd_uv;
