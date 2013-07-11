@@ -720,6 +720,25 @@ static struct kobj_type lowmem_notify_kobj_type = {
 	.default_attrs = lowmem_notify_default_attrs,
 };
 
+#ifdef CONFIG_ANDROID_BG_SCAN_MEM
+static int lmk_task_migration_notify(struct notifier_block *nb,
+					unsigned long data, void *arg)
+{
+	struct shrink_control sc = {
+		.gfp_mask = GFP_KERNEL,
+		.nr_to_scan = 1,
+	};
+
+	lowmem_shrink(&lowmem_shrinker, &sc);
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block tsk_migration_nb = {
+	.notifier_call = lmk_task_migration_notify,
+};
+#endif
+
 static int __init lowmem_init(void)
 {
 	int rc;
@@ -738,8 +757,13 @@ static int __init lowmem_init(void)
 
 	register_shrinker(&lowmem_shrinker);
 	register_power_suspend(&low_mem_suspend);
+
 	vmpressure_notifier_register(&lmk_vmpr_nb);
 
+#ifdef CONFIG_ANDROID_BG_SCAN_MEM
+	raw_notifier_chain_register(&bgtsk_migration_notifier_head,
+					&tsk_migration_nb);
+#endif
 	return 0;
 }
 
@@ -748,6 +772,10 @@ static void __exit lowmem_exit(void)
 	kobject_put(lowmem_notify_kobj);
 	kfree(lowmem_notify_kobj);
 	unregister_shrinker(&lowmem_shrinker);
+#ifdef CONFIG_ANDROID_BG_SCAN_MEM
+	raw_notifier_chain_unregister(&bgtsk_migration_notifier_head,
+					&tsk_migration_nb);
+#endif
 }
 
 #ifdef CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
