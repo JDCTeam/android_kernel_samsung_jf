@@ -537,10 +537,10 @@ out_unlocked:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 9, 0)
 	/* EMPTY */
 #else /* LINUX_VERSION_CODE < KERNEL_VERSION(3, 9, 0) */
-static inline struct inode *file_inode(const struct file *f)
+/*static inline struct inode *file_inode(const struct file *f)
 {
 	return f->f_dentry->d_inode;
-}
+}*/
 #endif
 
 
