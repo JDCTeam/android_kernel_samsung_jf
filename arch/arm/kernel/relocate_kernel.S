@@ -65,7 +65,6 @@ relocate_new_kernel:
 	teq	r0, #0
 	bne	hardboot
 #endif
-
 	/* Jump to relocated kernel */
 	mov lr,r1
 	mov r0,#0

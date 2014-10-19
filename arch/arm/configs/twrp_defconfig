@@ -584,5 +584,33 @@ CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE=y
 =======
 CONFIG_CPU_FREQ_GOV_COMMON=y
 
+<<<<<<< HEAD:arch/arm/configs/twrp_defconfig
 CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE=y
 >>>>>>> f6a36c3b8fc... kernel: Introduce cpufreq_governor helper:arch/arm/configs/side_jf_defconfig
+=======
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ABYSSPLUG is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ADAPTIVE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_BADASS is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_DANCEDANCE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_KTOONSERVATIVE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_NIGHTMARE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_PEGASUSQ is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_SLP is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_WHEATLEY is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_BIOSHOCK is not set
+
+##########################################################
+# kexec hardboot support
+CONFIG_KEXEC=y
+CONFIG_KEXEC_HARDBOOT=y
+CONFIG_ANDROID_PERSISTENT_RAM=y
+CONFIG_KEXEC_HB_PAGE_ADDR=0x8fdff000
+CONFIG_END_MEM=0xffffffff
+CONFIG_HAVE_END_MEM=y
+CONFIG_ATAGS_PROC=y
+>>>>>>> 2dc9503887c... kernel: Add and enable kexec hardboot support:arch/arm/configs/side_jf_defconfig
