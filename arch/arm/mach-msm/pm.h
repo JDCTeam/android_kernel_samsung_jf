@@ -92,6 +92,7 @@ struct msm_pm_sleep_ops {
 			bool from_idle, bool notify_rpm);
 	void (*exit_sleep)(void *limits, bool from_idle,
 			bool notify_rpm, bool collapsed);
+	bool (*suspend_again)(void);
 };
 
 enum msm_pm_pc_mode_type {

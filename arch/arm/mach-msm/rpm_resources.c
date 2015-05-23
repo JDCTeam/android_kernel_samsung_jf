@@ -27,9 +27,11 @@
 #include <linux/io.h>
 #include <mach/socinfo.h>
 #include <mach/mpm.h>
+#include "pm.h"
 #include "rpm_resources.h"
 #include "spm.h"
 #include "idle.h"
+#include <linux/quickwakeup.h>
 
 /******************************************************************************
  * Debug Definitions
@@ -1135,6 +1137,7 @@ static struct msm_pm_sleep_ops msm_rpmrs_ops = {
 	.lowest_limits = msm_rpmrs_lowest_limits,
 	.enter_sleep = msm_rpmrs_enter_sleep,
 	.exit_sleep = msm_rpmrs_exit_sleep,
+	.suspend_again = quickwakeup_suspend_again,
 };
 
 static int __init msm_rpmrs_l2_init(void)
