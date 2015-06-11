@@ -579,6 +579,7 @@ static inline void process_adj_status(struct timex *txc, struct timespec *ts)
 	if ((time_status & STA_PLL) && !(txc->status & STA_PLL)) {
 		time_state = TIME_OK;
 		time_status = STA_UNSYNC;
+		ntp_next_leap_sec = KTIME_MAX;
 		/* restart PPS frequency calibration */
 		pps_reset_freq_interval();
 	}
