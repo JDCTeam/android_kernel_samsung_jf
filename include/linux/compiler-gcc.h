@@ -114,6 +114,7 @@
  * would be.
  * [...]
  */
+<<<<<<< HEAD
 #define __pure			__attribute__((pure))
 #define __aligned(x)		__attribute__((aligned(x)))
 #define __printf(a, b)		__attribute__((format(printf, a, b)))
@@ -121,6 +122,16 @@
 #define __attribute_const__	__attribute__((__const__))
 #define __maybe_unused		__attribute__((unused))
 #define __always_unused		__attribute__((unused))
+=======
+#define __pure				__attribute__((pure))
+#define __aligned(x)			__attribute__((aligned(x)))
+#define __printf(a, b)			__attribute__((format(printf, a, b)))
+#define __scanf(a, b)			__attribute__((format(scanf, a, b)))
+#define  noinline			__attribute__((noinline))
+#define __attribute_const__		__attribute__((__const__))
+#define __maybe_unused			__attribute__((unused))
+#define __always_unused			__attribute__((unused))
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 
 /* gcc version specific checks */
 
@@ -142,7 +153,10 @@
 
 #if GCC_VERSION >= 30400
 #define __must_check		__attribute__((warn_unused_result))
+<<<<<<< HEAD
 #define __malloc		__attribute__((__malloc__))
+=======
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 #endif
 
 #if GCC_VERSION >= 40000
@@ -158,7 +172,11 @@
 #define __compiler_offsetof(a, b)					\
 	__builtin_offsetof(a, b)
 
+<<<<<<< HEAD
 #if GCC_VERSION >= 40100
+=======
+#if GCC_VERSION >= 40100 && GCC_VERSION < 40600
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
 #endif
 
@@ -188,6 +206,7 @@
 #endif /* GCC_VERSION >= 40300 */
 
 #if GCC_VERSION >= 40500
+<<<<<<< HEAD
 
 #ifndef __CHECKER__
 #ifdef LATENT_ENTROPY_PLUGIN
@@ -195,6 +214,8 @@
 #endif
 #endif
 
+=======
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 /*
  * Mark a position in code as unreachable.  This can be used to
  * suppress control flow warnings after asm blocks that transfer
@@ -207,20 +228,29 @@
 #define unreachable() __builtin_unreachable()
 
 /* Mark a function definition as prohibited from being cloned. */
+<<<<<<< HEAD
 #define __noclone	__attribute__((__noclone__, __optimize__("no-tracer")))
+=======
+#define __noclone	__attribute__((__noclone__))
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 
 #endif /* GCC_VERSION >= 40500 */
 
 #if GCC_VERSION >= 40600
 /*
+<<<<<<< HEAD
  * When used with Link Time Optimization, gcc can optimize away C functions or
  * variables which are referenced only from assembly code.  __visible tells the
  * optimizer that something else uses this function or variable, thus preventing
  * this.
+=======
+ * Tell the optimizer that something else uses this function or variable.
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
  */
 #define __visible	__attribute__((externally_visible))
 #endif
 
+<<<<<<< HEAD
 
 #if GCC_VERSION >= 40900 && !defined(__CHECKER__)
 /*
@@ -238,6 +268,8 @@
 #define __assume_aligned(a, ...) __attribute__((__assume_aligned__(a, ## __VA_ARGS__)))
 #endif
 
+=======
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 /*
  * GCC 'asm goto' miscompiles certain code sequences:
  *
@@ -249,15 +281,20 @@
  */
 #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
 
+<<<<<<< HEAD
 /*
  * sparse (__CHECKER__) pretends to be gcc, but can't do constant
  * folding in __builtin_bswap*() (yet), so don't set these for it.
  */
 #if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
+=======
+#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 #if GCC_VERSION >= 40400
 #define __HAVE_BUILTIN_BSWAP32__
 #define __HAVE_BUILTIN_BSWAP64__
 #endif
+<<<<<<< HEAD
 #if GCC_VERSION >= 40800
 #define __HAVE_BUILTIN_BSWAP16__
 #endif
@@ -266,11 +303,20 @@
 #if GCC_VERSION >= 70000
 #define KASAN_ABI_VERSION 5
 #elif GCC_VERSION >= 50000
+=======
+#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
+#define __HAVE_BUILTIN_BSWAP16__
+#endif
+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
+
+#if GCC_VERSION >= 50000
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 #define KASAN_ABI_VERSION 4
 #elif GCC_VERSION >= 40902
 #define KASAN_ABI_VERSION 3
 #endif
 
+<<<<<<< HEAD
 #if GCC_VERSION >= 40902
 /*
  * Tell the compiler that address safety instrumentation (KASAN)
@@ -280,6 +326,8 @@
 #define __no_sanitize_address __attribute__((no_sanitize_address))
 #endif
 
+=======
+>>>>>>> ddb38573982... compiler-gcc: integrate the various compiler-gcc[345].h files
 #endif	/* gcc version >= 40000 specific checks */
 
 #if !defined(__noclone)
