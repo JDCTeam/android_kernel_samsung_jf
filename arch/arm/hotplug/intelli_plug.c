@@ -50,7 +50,7 @@ static struct delayed_work intelli_plug_work;
 static struct workqueue_struct *intelliplug_wq;
 static struct workqueue_struct *intelliplug_boost_wq;
 
-static unsigned int __read_mostly intelli_plug_active = 0;
+static unsigned int __read_mostly intelli_plug_active = 1;
 module_param(intelli_plug_active, uint, 0664);
 
 static unsigned int __read_mostly nr_run_profile_sel = 0;
