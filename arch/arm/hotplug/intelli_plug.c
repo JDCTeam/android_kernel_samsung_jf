@@ -244,7 +244,7 @@ static void __ref intelli_plug_work_fn(struct work_struct *work)
 
 	int i;
 
-	if (intelli_plug_active) {
+	if (intelli_plug_active && !suspended) {
 		nr_run_stat = calculate_thread_stats();
 		update_per_cpu_stat();
 #ifdef DEBUG_INTELLI_PLUG
@@ -253,69 +253,62 @@ static void __ref intelli_plug_work_fn(struct work_struct *work)
 		cpu_count = nr_run_stat;
 		nr_cpus = num_online_cpus();
 
-		if (!suspended) {
+		if (persist_count > 0)
+			persist_count--;
 
-			if (persist_count > 0)
-				persist_count--;
-
-			switch (cpu_count) {
-			case 1:
-				if (persist_count == 0) {
-					//take down everyone
-					unplug_cpu(0);
-				}
-#ifdef DEBUG_INTELLI_PLUG
-				pr_info("case 1: %u\n", persist_count);
-#endif
-				break;
-			case 2:
-				if (persist_count == 0)
-					persist_count = DUAL_PERSISTENCE;
-				if (nr_cpus < 2) {
-					for (i = 1; i < cpu_count; i++)
-						cpu_up(i);
-				} else {
-					unplug_cpu(1);
-				}
-#ifdef DEBUG_INTELLI_PLUG
-				pr_info("case 2: %u\n", persist_count);
-#endif
-				break;
-			case 3:
-				if (persist_count == 0)
-					persist_count = TRI_PERSISTENCE;
-				if (nr_cpus < 3) {
-					for (i = 1; i < cpu_count; i++)
-						cpu_up(i);
-				} else {
-					unplug_cpu(2);
-				}
-#ifdef DEBUG_INTELLI_PLUG
-				pr_info("case 3: %u\n", persist_count);
-#endif
-				break;
-			case 4:
-				if (persist_count == 0)
-					persist_count = QUAD_PERSISTENCE;
-				if (nr_cpus < 4)
-					for (i = 1; i < cpu_count; i++)
-						cpu_up(i);
-#ifdef DEBUG_INTELLI_PLUG
-				pr_info("case 4: %u\n", persist_count);
-#endif
-				break;
-			default:
-				pr_err("Run Stat Error: Bad value %u\n", nr_run_stat);
-				break;
+		switch (cpu_count) {
+		case 1:
+			if (persist_count == 0) {
+				//take down everyone
+				unplug_cpu(0);
 			}
-		}
 #ifdef DEBUG_INTELLI_PLUG
-		else
-			pr_info("intelli_plug is suspened!\n");
+			pr_info("case 1: %u\n", persist_count);
 #endif
+			break;
+		case 2:
+			if (persist_count == 0)
+				persist_count = DUAL_PERSISTENCE;
+			if (nr_cpus < 2) {
+				for (i = 1; i < cpu_count; i++)
+					cpu_up(i);
+			} else {
+				unplug_cpu(1);
+			}
+#ifdef DEBUG_INTELLI_PLUG
+			pr_info("case 2: %u\n", persist_count);
+#endif
+			break;
+		case 3:
+			if (persist_count == 0)
+				persist_count = TRI_PERSISTENCE;
+			if (nr_cpus < 3) {
+				for (i = 1; i < cpu_count; i++)
+					cpu_up(i);
+			} else {
+				unplug_cpu(2);
+			}
+#ifdef DEBUG_INTELLI_PLUG
+			pr_info("case 3: %u\n", persist_count);
+#endif
+			break;
+		case 4:
+			if (persist_count == 0)
+				persist_count = QUAD_PERSISTENCE;
+			if (nr_cpus < 4)
+				for (i = 1; i < cpu_count; i++)
+					cpu_up(i);
+#ifdef DEBUG_INTELLI_PLUG
+			pr_info("case 4: %u\n", persist_count);
+#endif
+			break;
+		default:
+			pr_err("Run Stat Error: Bad value %u\n", nr_run_stat);
+			break;
+		}
+		queue_delayed_work_on(0, intelliplug_wq, &intelli_plug_work,
+			msecs_to_jiffies(sampling_time));
 	}
-	queue_delayed_work_on(0, intelliplug_wq, &intelli_plug_work,
-		msecs_to_jiffies(sampling_time));
 }
 
 #if defined(CONFIG_POWERSUSPEND) || defined(CONFIG_HAS_EARLYSUSPEND)
