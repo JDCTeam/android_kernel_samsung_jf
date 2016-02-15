@@ -19,6 +19,7 @@
 #include <linux/mutex.h>
 #include <linux/proc_fs.h>
 #include <linux/spinlock.h>
+#include <linux/slab.h>
 #include <linux/cpu.h>
 #include <linux/hrtimer.h>
 #include <mach/rpm.h>
@@ -567,7 +568,7 @@ static int msm_rpmrs_flush_buffer(
 
 	count = bitmap_weight(msm_rpmrs_buffered, MSM_RPM_ID_LAST);
 
-	req = kmalloc(sizeof(*req) * count, GFP_ATOMIC);
+	req = kzalloc(sizeof(*req) * count, GFP_ATOMIC);
 	if (!req) {
 		rc = -ENOMEM;
 		goto flush_buffer_restore;

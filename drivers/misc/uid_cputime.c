@@ -120,7 +120,7 @@ static int uid_stat_show(struct seq_file *m, void *v)
 
 static int uid_stat_open(struct inode *inode, struct file *file)
 {
-	return single_open(file, uid_stat_show, PDE(inode)->data);
+	return single_open(file, uid_stat_show, PDE_DATA(inode));
 }
 
 static const struct file_operations uid_stat_fops = {
