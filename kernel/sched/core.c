@@ -2509,6 +2509,10 @@ unsigned long avg_nr_running(void)
 	return sum;
 }
 EXPORT_SYMBOL(avg_nr_running);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 363ec91... Merge branch 'cm-13.0_Faux123-intelli-plug_flo_n5_Arter97-msm8974' into cm-13.0
 unsigned long avg_cpu_nr_running(unsigned int cpu)
 {
 	unsigned int seqcnt, ave_nr_running;
