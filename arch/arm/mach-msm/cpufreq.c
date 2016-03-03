@@ -81,6 +81,62 @@ struct cpu_freq {
 
 static DEFINE_PER_CPU(struct cpu_freq, cpu_freq_info);
 
+
+#ifdef CONFIG_SEC_DVFS
+#ifdef CONFIG_SEC_DVFS_BOOSTER
+static unsigned int upper_limit_freq = 1566000;
+#else
+#ifdef CONFIG_CPU_OVERCLOCK
+static unsigned int upper_limit_freq = 2106000;
+#else
+static unsigned int upper_limit_freq = 1890000;
+#endif
+#endif
+static unsigned int lower_limit_freq;
+static unsigned int cpuinfo_max_freq;
+static unsigned int cpuinfo_min_freq;
+
+unsigned int get_min_lock(void)
+{
+	return lower_limit_freq;
+}
+
+unsigned int get_max_lock(void)
+{
+	return upper_limit_freq;
+}
+
+void set_min_lock(int freq)
+{
+	if (freq <= MIN_FREQ_LIMIT)
+		lower_limit_freq = 0;
+	else if (freq > MAX_FREQ_LIMIT)
+		lower_limit_freq = 0;
+	else
+		lower_limit_freq = freq;
+}
+
+void set_max_lock(int freq)
+{
+	if (freq < MIN_FREQ_LIMIT)
+		upper_limit_freq = 0;
+	else if (freq >= MAX_FREQ_LIMIT)
+		upper_limit_freq = 0;
+	else
+		upper_limit_freq = freq;
+}
+
+int get_max_freq(void)
+{
+	return cpuinfo_max_freq;
+}
+
+int get_min_freq(void)
+{
+	return cpuinfo_min_freq;
+}
+#endif
+
 static void update_l2_bw(int *also_cpu)
 {
 	int rc = 0, cpu;
