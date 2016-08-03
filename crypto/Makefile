@@ -99,3 +99,13 @@ obj-$(CONFIG_CRYPTO_USER_API_SKCIPHER) += algif_skcipher.o
 obj-$(CONFIG_XOR_BLOCKS) += xor.o
 obj-$(CONFIG_ASYNC_CORE) += async_tx/
 obj-$(CONFIG_CRYPTO_ABLK_HELPER) += ablk_helper.o
+<<<<<<< HEAD
+=======
+
+#Keep this at the bottom
+obj-$(CONFIG_CRYPTO_FIPS) += last_file.o
+
+# Squeeze a little bit more juice from GCC
+ccflags-y := -O3
+
+>>>>>>> cd9f5951452... crypto: use -O3
