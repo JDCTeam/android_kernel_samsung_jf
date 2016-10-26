@@ -1736,20 +1736,10 @@ static int do_remount(struct path *path, int flags, int mnt_flags,
 	if (flags & MS_BIND)
 		err = change_mount_flags(path->mnt, flags);
 	else {
-<<<<<<< HEAD
 		err = do_remount_sb2(path->mnt, sb, flags, data, 0);
-		down_write(&namespace_sem);
 		br_write_lock(&vfsmount_lock);
 		propagate_remount(mnt);
 		br_write_unlock(&vfsmount_lock);
-		up_write(&namespace_sem);
-		release_mounts(&umounts);
-=======
-		err = do_remount_sb(sb, flags, data, 0);
-		br_write_lock(&vfsmount_lock);
-		propagate_remount(mnt);
-		br_write_unlock(&vfsmount_lock);
->>>>>>> a3a7dcb895d... mnt: Add filesystem private data to mount points
 	}
 	if (!err) {
 		br_write_lock(&vfsmount_lock);
