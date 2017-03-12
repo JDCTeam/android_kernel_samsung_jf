@@ -229,3 +229,4 @@ obj-$(CONFIG_MSM_WFD) += msm_wfd/
 ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
 ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
 ccflags-y += -I$(srctree)/drivers/media/common/tuners
+ccflags-y := -Os
