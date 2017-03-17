@@ -127,7 +127,6 @@ static ssize_t ac_charge_level_store(struct kobject *kobj,
 			case AC_CHARGE_1000:
 			case AC_CHARGE_1300:
 			case AC_CHARGE_1600:
-			case AC_CHARGE_1900:
 				ac_charge_level = new_ac_charge_level;
 				return count;
 			default:

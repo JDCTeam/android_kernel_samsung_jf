@@ -21,9 +21,9 @@
 #define _LINUX_FASTCHG_H
 
 #define FAST_CHARGE_VERSION "v1.0 by Paul Reioux"
-#define AC_LEVELS  "1000 1300 1600 1900"
+#define AC_LEVELS  "1000 1300 1600"
 #define USB_LEVELS "460 700 900"
-#define ANY_LEVELS "0 to 1900"
+#define ANY_LEVELS "0 to 1600"
 
 extern int force_fast_charge;
 
@@ -36,7 +36,6 @@ extern int ac_charge_level;
 #define AC_CHARGE_1000 1000
 #define AC_CHARGE_1300 1300
 #define AC_CHARGE_1600 1600
-#define AC_CHARGE_1900 1900
 
 extern int usb_charge_level;
 
@@ -45,11 +44,12 @@ extern int usb_charge_level;
 #define USB_CHARGE_900 900
 
 /* Whatever happens, this is the limit */
-#define MAX_CHARGE_LEVEL 1900
+#define MAX_CHARGE_LEVEL 1700
 
 extern int failsafe;
 #define FAIL_SAFE_ENABLED 1	/* default */
 #define FAIL_SAFE_DISABLED 0
 
 #endif
+
 
