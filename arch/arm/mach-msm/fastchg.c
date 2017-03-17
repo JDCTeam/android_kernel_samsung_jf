@@ -399,7 +399,7 @@ int force_fast_charge_init(void)
 	int force_fast_charge_retval;
 
 	/* Forced fast charge disabled by default */
-	force_fast_charge = FAST_CHARGE_ENABLED;
+	force_fast_charge = FAST_CHARGE_FORCE_CUSTOM_MA;
 	/* Use MTP during fast charge, enabled by default */
 	use_mtp_during_fast_charge = USE_MTP_DURING_FAST_CHARGE_ENABLED;
 	/* Use Samsung Screen ON current limit while charging, enabled by default */
