@@ -403,11 +403,11 @@ int force_fast_charge_init(void)
 	/* Use MTP during fast charge, enabled by default */
 	use_mtp_during_fast_charge = USE_MTP_DURING_FAST_CHARGE_ENABLED;
 	/* Use Samsung Screen ON current limit while charging, enabled by default */
-	screen_on_current_limit = SCREEN_ON_CURRENT_LIMIT_ENABLED;
+	screen_on_current_limit = SCREEN_ON_CURRENT_LIMIT_DISABLED;
 	/* Default AC charge level to 1900mA/h    */
 	ac_charge_level   = AC_CHARGE_1900;
 	/* Default USB charge level to 460mA/h    */
-	usb_charge_level  = USB_CHARGE_460;
+	usb_charge_level  = USB_CHARGE_1000;
 	/* Allow only values in list by default   */
 	failsafe          = FAIL_SAFE_DISABLED;
 
