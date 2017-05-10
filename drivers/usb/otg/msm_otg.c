@@ -52,7 +52,9 @@
 #include <mach/msm_bus.h>
 #include <mach/rpm-regulator.h>
 
+#ifdef CONFIG_FORCE_FAST_CHARGE
 #include <linux/fastchg.h>
+#endif
 
 #define MSM_USB_BASE	(motg->regs)
 #define DRIVER_NAME	"msm_otg"
@@ -1588,8 +1590,10 @@ static void msm_otg_start_peripheral(struct usb_otg *otg, int on)
 	struct msm_otg *motg = container_of(otg->phy, struct msm_otg, phy);
 	struct msm_otg_platform_data *pdata = motg->pdata;
 
+#ifdef CONFIG_FORCE_FAST_CHARGE
 	if (!use_mtp_during_fast_charge && on == 1)
 		on = 0;
+#endif
 	
 	if (!otg->gadget)
 		return;
@@ -3275,7 +3279,28 @@ void msm_otg_set_vbus_state(int online)
 }
 EXPORT_SYMBOL_GPL(msm_otg_set_vbus_state);
 #endif
+void msm_otg_set_charging_state(bool enable)
+{
+	struct msm_otg *motg = the_msm_otg;
+	static bool charging;
 
+	if (charging == enable)
+		return;
+	else
+		charging = enable;
+
+	pr_info("%s enable=%d\n", __func__, enable);
+
+	if (enable) {
+		motg->chg_type = USB_DCP_CHARGER;
+		motg->chg_state = USB_CHG_STATE_DETECTED;
+		schedule_work(&motg->sm_work);
+	} else {
+		motg->chg_state = USB_CHG_STATE_UNDEFINED;
+		motg->chg_type = USB_INVALID_CHARGER;
+	}
+}
+EXPORT_SYMBOL_GPL(msm_otg_set_charging_state);
 void msm_otg_set_id_state(int online)
 {
 	struct msm_otg *motg = the_msm_otg;
