@@ -24,13 +24,13 @@
 
 #define FAST_CHARGE_VERSION "v1.1 by Ktoonsez from Jean-Pierre and Paul Reioux original implementation"
 #define AC_LEVELS  "500 1000 1450 1900"
-#define USB_LEVELS "460 700 1000"
+#define USB_LEVELS "460 700 1000 1600"
 #define ANY_LEVELS "0 to 1900"
 
 extern int force_fast_charge;
 
-#define FAST_CHARGE_DISABLED 0	/* default */
-#define FAST_CHARGE_FORCE_AC 1
+#define FAST_CHARGE_DISABLED 0
+#define FAST_CHARGE_FORCE_AC 1	/* default */
 #define FAST_CHARGE_FORCE_CUSTOM_MA 2
 
 extern int use_mtp_during_fast_charge;
@@ -40,21 +40,22 @@ extern int use_mtp_during_fast_charge;
 
 extern int screen_on_current_limit;
 
-#define SCREEN_ON_CURRENT_LIMIT_DISABLED 0
-#define SCREEN_ON_CURRENT_LIMIT_ENABLED 1	/* default */
+#define SCREEN_ON_CURRENT_LIMIT_DISABLED 0	/* default */
+#define SCREEN_ON_CURRENT_LIMIT_ENABLED 1
 
 extern int ac_charge_level;
 
 #define AC_CHARGE_500 500
 #define AC_CHARGE_1000 1000
-#define AC_CHARGE_1450 1300
-#define AC_CHARGE_1900 1900
+#define AC_CHARGE_1450 1450
+#define AC_CHARGE_1900 1900	/* default */
 
 extern int usb_charge_level;
 
-#define USB_CHARGE_460 460	/* default */
+#define USB_CHARGE_460 460
 #define USB_CHARGE_700 700
 #define USB_CHARGE_1000 1000
+#define USB_CHARGE_1600 1600	/* default */
 
 /* Whatever happens, this is the limit */
 #define MAX_CHARGE_LEVEL 1900
