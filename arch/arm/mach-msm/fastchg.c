@@ -255,6 +255,7 @@ static ssize_t usb_charge_level_store(struct kobject *kobj,
 			case USB_CHARGE_460:
 			case USB_CHARGE_700:
 			case USB_CHARGE_1000:
+			case USB_CHARGE_1600:
 				usb_charge_level = new_usb_charge_level;
 				return count;
 			default:
@@ -293,8 +294,8 @@ static ssize_t failsafe_store(struct kobject *kobj,
 
 	switch (new_failsafe) {
 		case FAIL_SAFE_ENABLED:
-			usb_charge_level = USB_CHARGE_460;
-			ac_charge_level = AC_CHARGE_1000;
+			usb_charge_level = USB_CHARGE_1600;
+			ac_charge_level = AC_CHARGE_1900;
 			failsafe = new_failsafe;
 			return count;
 		case FAIL_SAFE_DISABLED:
@@ -399,15 +400,15 @@ int force_fast_charge_init(void)
 	int force_fast_charge_retval;
 
 	/* Forced fast charge disabled by default */
-	force_fast_charge = FAST_CHARGE_DISABLED;
+	force_fast_charge = FAST_CHARGE_FORCE_AC;
 	/* Use MTP during fast charge, enabled by default */
 	use_mtp_during_fast_charge = USE_MTP_DURING_FAST_CHARGE_ENABLED;
 	/* Use Samsung Screen ON current limit while charging, enabled by default */
 	screen_on_current_limit = SCREEN_ON_CURRENT_LIMIT_DISABLED;
 	/* Default AC charge level to 1900mA/h    */
 	ac_charge_level   = AC_CHARGE_1900;
-	/* Default USB charge level to 460mA/h    */
-	usb_charge_level  = USB_CHARGE_1000;
+	/* Default USB charge level to 1600mA/h    */
+	usb_charge_level  = USB_CHARGE_1600;
 	/* Allow only values in list by default   */
 	failsafe          = FAIL_SAFE_DISABLED;
 
