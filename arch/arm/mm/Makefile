@@ -1,7 +1,7 @@
 #
 # Makefile for the linux arm-specific parts of the memory manager.
 #
-
+ccflags-y := -Ofast -ffast-math -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -fsingle-precision-constant
 obj-y				:= dma-mapping.o extable.o fault.o init.o \
 				   iomap.o
 
