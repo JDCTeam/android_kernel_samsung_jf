@@ -32,6 +32,12 @@ config IOSCHED_DEADLINE
 	  a new point in the service tree and doing a batch of IO from there
 	  in case of expiry.
 
+config IOSCHED_TRIPNDROID
+	tristate "Tripndroid"
+	default y
+	---help---
+	  The Trip N Droid scheduler
+
 config IOSCHED_ROW
 	tristate "ROW I/O scheduler"
 	default y
@@ -140,6 +146,9 @@ choice
 
 	config DEFAULT_ZEN
 		bool "ZEN" if IOSCHED_ZEN=y
+		
+	config DEFAULT_TRIPNDROID
+		bool "TRIPNDROID" if IOSCHED_TRIPNDROID=y
 
 	config DEFAULT_NOOP
 		bool "No-op"
@@ -155,6 +164,7 @@ config DEFAULT_IOSCHED
 	default "fiops" if DEFAULT_FIOPS
 	default "noop" if DEFAULT_NOOP
 	default "zen" if DEFAULT_ZEN
+	default "tripndroid" if DEFAULT_TRIPNDROID
 
 endmenu
 
