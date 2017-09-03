@@ -1790,7 +1790,18 @@ config CPU_VOLTAGE_TABLE
 	bool "Enable CPU Voltage Table via sysfs for adjustements"
 	default n
 	help
-	  Krait User Votlage Control
+	  Krait User Voltage Control
+
+config MSM_CPUFREQ_LIMITER
+    tristate "MSM CPU frequency limiter"
+    default n
+    help
+      This driver limits MSM CPU frequency through sysfs file system.
+
+      To compile this driver as a module, choose M here: the
+      module will be called cpufreq_stats.
+
+      If in doubt, say N.
 
 config MSM_AVS_HW
 	bool "Enable Adaptive Voltage Scaling (AVS)"
@@ -2837,7 +2848,7 @@ config SEC_THERMISTOR
 	default n
 	help
 	Use thermistor driver for checking temperature near AP chip.
-	  
+
 config EXT_MAINMIC_BIAS
 	depends on ARCH_MSM8930
 	default n
@@ -2920,7 +2931,7 @@ config 2MIC_QUP_I2C_GSBI2
          Say Y here if you want use 2MIC QUP GSBI2.
 	 To compile this option, choose M here:
 	 If unsure, say N here.
-	 
+
 config EXT_ADC_IC
        	depends on ARCH_MSM8930
 	default n
@@ -2987,7 +2998,7 @@ config AUXPCM_INTERFACE
          Say Y here if you want use auxpcm interface for external device.
 	 To compile this option, choose M here:
 	 If unsure, say N here.
-	 
+
 config PCM_ROUTE_VOICE_STUB
 	depends on ARCH_MSM8930
 	default n
