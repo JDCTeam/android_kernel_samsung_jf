@@ -62,7 +62,7 @@ static struct asmp_param_struct {
 	u64 boost_lock_dur;
 } asmp_param = {
 	.delay = DEFAULT_UPDATE_RATE,
-	.max_cpus = NR_CPUS,
+	.max_cpus = 4,
 	.min_cpus = 1,
 	.cpufreq_up = 76,
 	.cpufreq_down = 60,
