@@ -1807,7 +1807,7 @@ static void sec_bat_monitor_work(
 
 	dev_dbg(battery->dev, "%s: Start\n", __func__);
 
-	c_ts = ktime_to_timespec(alarm_get_elapsed_realtime());
+    get_monotonic_boottime(&c_ts);
 
 	/* monitor once after wakeup */
 	if (battery->polling_in_sleep) {
