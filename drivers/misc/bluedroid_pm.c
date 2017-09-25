@@ -35,8 +35,6 @@
 #include <linux/interrupt.h>
 #include <linux/wakelock.h>
 #include <linux/slab.h>
-#include <linux/pm_qos.h>
-#include <linux/bluedroid_pm.h>
 #include <linux/delay.h>
 #include <linux/timer.h>
 
@@ -67,14 +65,12 @@ struct bluedroid_pm_data {
 	int host_wake;
 	int ext_wake;
 	int is_blocked;
-	int resume_min_frequency;
 	unsigned long flags;
 	unsigned host_wake_irq;
 	struct regulator *vdd_3v3;
 	struct regulator *vdd_1v8;
 	struct rfkill *rfkill;
 	struct wake_lock wake_lock;
-	struct pm_qos_request resume_cpu_freq_req;
 };
 
 struct proc_dir_entry *proc_bt_dir, *bluetooth_sleep_dir;
@@ -179,9 +175,6 @@ static int bluedroid_pm_rfkill_set_power(void *data, bool blocked)
 			regulator_disable(bluedroid_pm->vdd_1v8);
 		if (bluedroid_pm->ext_wake)
 			wake_unlock(&bluedroid_pm->wake_lock);
-		if (bluedroid_pm->resume_min_frequency)
-			pm_qos_remove_request(&bluedroid_pm->
-						resume_cpu_freq_req);
 	} else {
 		if (bluedroid_pm->vdd_3v3)
 			regulator_enable(bluedroid_pm->vdd_3v3);
@@ -193,11 +186,6 @@ static int bluedroid_pm_rfkill_set_power(void *data, bool blocked)
 		if (bluedroid_pm->gpio_reset)
 			bluedroid_pm_gpio_set_value(
 				bluedroid_pm->gpio_reset, 1);
-		if (bluedroid_pm->resume_min_frequency)
-			pm_qos_add_request(&bluedroid_pm->
-						resume_cpu_freq_req,
-						PM_QOS_CPU_FREQ_MIN,
-						PM_QOS_DEFAULT_VALUE);
 	}
 	bluedroid_pm->is_blocked = blocked;
 	mdelay(100);
@@ -223,7 +211,6 @@ EXPORT_SYMBOL(bluedroid_pm_set_ext_state);
 static int bluedroid_pm_probe(struct platform_device *pdev)
 {
 	static struct bluedroid_pm_data *bluedroid_pm;
-	struct bluedroid_pm_platform_data *pdata = pdev->dev.platform_data;
 	struct rfkill *rfkill;
 	struct resource *res;
 	int ret;
@@ -360,11 +347,6 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
 		BDP_DBG("gpio_ext_wake not registered\n");
 		bluedroid_pm->ext_wake = 0;
 	}
-
-	/* Update resume_min_frequency, if pdata is passed from board files */
-	if (pdata)
-		bluedroid_pm->resume_min_frequency =
-						pdata->resume_min_frequency;
 
 	platform_set_drvdata(pdev, bluedroid_pm);
 	BDP_DBG("driver successfully registered\n");
