@@ -450,7 +450,7 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
 					size_t count, loff_t *ppos)
 {
 	char *buf;
-	struct bluedroid_pm_data *bluedroid_pm = PDE_DATA(file_inode(file));
+	struct bluedroid_pm_data *bluedroid_pm = PDE(file->f_path.dentry->d_inode)->data;
 
 	if (count < 1)
 		return -EINVAL;
