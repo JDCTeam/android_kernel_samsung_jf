@@ -3,13 +3,13 @@
  * Basically selected code segments from usb-cdc.c and usb-rndis.c
  *
  * Copyright (C) 1999-2014, Broadcom Corporation
- * 
+ *
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
  * following added to such license:
- * 
+ *
  *      As a special exception, the copyright holders of this software give you
  * permission to link this software with independent modules, and to copy and
  * distribute the resulting executable under terms of your choice, provided that
@@ -17,7 +17,7 @@
  * the license of that module.  An independent module is a module which is not
  * derived from this software.  The special exception does not apply to any
  * modifications of the software.
- * 
+ *
  *      Notwithstanding the above, under no circumstances may you combine this
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
@@ -193,7 +193,7 @@ extern void dhd_enable_oob_intr(struct dhd_bus *bus, bool enable);
 #endif /* defined(OOB_INTR_ONLY) || defined(BCMSPI_ANDROID) */
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27))
 static void dhd_hang_process(void *dhd_info, void *event_data, u8 event);
-#endif 
+#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0))
 MODULE_LICENSE("GPL v2");
 #endif /* LinuxVer */
@@ -2272,7 +2272,7 @@ dhd_rx_frame(dhd_pub_t *dhdp, int ifidx, void *pktbuf, int numpkt, uint8 chan)
 				PKTFREE(dhdp->osh, pktbuf, TRUE);
 				continue;
 			}
-#endif 
+#endif
 		} else {
 			tout_rx = DHD_PACKET_TIMEOUT_MS;
 		}
@@ -3041,7 +3041,7 @@ static bool dhd_check_hang(struct net_device *net, dhd_pub_t *dhdp, int error)
 		DHD_ERROR(("%s : skipped due to negative pid - unloading?\n", __FUNCTION__));
 		return FALSE;
 	}
-#endif 
+#endif
 
 	if ((error == -ETIMEDOUT) || (error == -EREMOTEIO) ||
 		((dhdp->busstate == DHD_BUS_DOWN) && (!dhdp->dongle_reset))) {
@@ -3441,7 +3441,7 @@ exit:
 		}
 	}
 #endif /* SUPPORT_DEEP_SLEEP */
-#endif 
+#endif
 	dhd->pub.rxcnt_timeout = 0;
 	dhd->pub.txcnt_timeout = 0;
 
@@ -3620,7 +3620,7 @@ dhd_open(struct net_device *net)
 		goto exit;
 	}
 
-#endif 
+#endif
 
 	ifidx = dhd_net2idx(dhd, net);
 	DHD_TRACE(("%s: ifidx %d\n", __FUNCTION__, ifidx));
@@ -3674,7 +3674,7 @@ dhd_open(struct net_device *net)
 			dhd_fix_cpu_freq(dhd);
 		}
 #endif /* defined(CUSTOMER_HW4) && defined(FIX_CPU_MIN_CLOCK) */
-#endif 
+#endif
 
 		if (dhd->pub.busstate != DHD_BUS_DATA) {
 
@@ -4542,7 +4542,7 @@ int dhd_tdls_enable(struct net_device *dev, bool tdls_on, bool auto_on, struct e
 		ret = BCME_ERROR;
 	return ret;
 }
-#endif 
+#endif
 
 bool dhd_is_concurrent_mode(dhd_pub_t *dhd)
 {
@@ -4612,7 +4612,7 @@ dhd_get_concurrent_capabilites(dhd_pub_t *dhd)
 	}
 	return 0;
 }
-#endif 
+#endif
 
 
 int
@@ -4907,7 +4907,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 		}
 #else
 	(void)concurrent_mode;
-#endif 
+#endif
 	}
 
 	DHD_ERROR(("Firmware up: op_mode=0x%04x, MAC="MACDBG"\n",
@@ -4995,7 +4995,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 			ret = dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
 			DHD_ERROR(("%s Set lpc ret --> %d\n", __FUNCTION__, ret));
 		}
-#endif 
+#endif
 	}
 #endif /* DHD_ENABLE_LPC */
 
@@ -5052,7 +5052,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 	if (ap_fw_loaded == TRUE) {
 		dhd_wl_ioctl_cmd(dhd, WLC_SET_DTIMPRD, (char *)&dtim, sizeof(dtim), TRUE, 0);
 	}
-#endif 
+#endif
 
 #if defined(KEEP_ALIVE)
 	{
@@ -5061,7 +5061,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 
 #if defined(SOFTAP)
 	if (ap_fw_loaded == FALSE)
-#endif 
+#endif
 		if (!(dhd->op_mode &
 			(DHD_FLAG_HOSTAP_MODE | DHD_FLAG_MFG_MODE))) {
 			if ((res = dhd_keep_alive_onoff(dhd)) < 0)
@@ -5208,7 +5208,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 			ret = dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
 			DHD_ERROR(("%s vht_features set. ret --> %d\n", __FUNCTION__, ret));
 		}
-#endif 
+#endif
 	}
 #endif /* SUPPORT_2G_VHT */
 #ifdef CUSTOM_PSPRETEND_THR
@@ -5319,7 +5319,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 	if (arpoe && !ap_fw_loaded) {
 #else
 	if (arpoe) {
-#endif 
+#endif
 		dhd_arp_offload_enable(dhd, TRUE);
 		dhd_arp_offload_set(dhd, dhd_arp_mode);
 	} else {
@@ -5446,7 +5446,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 			if (ret2 != BCME_UNSUPPORTED)
 				ret = ret2;
 		}
-#endif 
+#endif
 		if (ret2 != BCME_OK)
 			hostreorder = 0;
 	}
@@ -6693,7 +6693,7 @@ void dhd_wait_for_event(dhd_pub_t *dhd, bool *lockvar)
 	dhd_os_sdunlock(dhd);
 	wait_event_timeout(dhdinfo->ctrl_wait, (*lockvar == FALSE), timeout);
 	dhd_os_sdlock(dhd);
-#endif 
+#endif
 	return;
 }
 
@@ -7068,7 +7068,7 @@ int dhd_net_set_fw_path(struct net_device *dev, char *fw)
 		DHD_INFO(("GOT STA FIRMWARE\n"));
 		ap_fw_loaded = FALSE;
 	}
-#endif 
+#endif
 	return 0;
 }
 
@@ -7220,10 +7220,10 @@ int dhd_os_wake_lock_timeout(dhd_pub_t *pub)
 #ifdef CONFIG_HAS_WAKELOCK
 		if (dhd->wakelock_rx_timeout_enable)
 			wake_lock_timeout(&dhd->wl_rxwake,
-				msecs_to_jiffies(dhd->wakelock_rx_timeout_enable) >> 1);
+				msecs_to_jiffies(dhd->wakelock_rx_timeout_enable)/4);
 		if (dhd->wakelock_ctrl_timeout_enable)
 			wake_lock_timeout(&dhd->wl_ctrlwake,
-				msecs_to_jiffies(dhd->wakelock_ctrl_timeout_enable) >> 1);
+				msecs_to_jiffies(dhd->wakelock_ctrl_timeout_enable)/4);
 #endif
 		dhd->wakelock_rx_timeout_enable = 0;
 		dhd->wakelock_ctrl_timeout_enable = 0;
