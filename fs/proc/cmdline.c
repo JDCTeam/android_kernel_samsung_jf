@@ -6,9 +6,21 @@
 
 static char new_command_line[COMMAND_LINE_SIZE];
 
+#ifdef CONFIG_SAMSUNG_LPM_MODE
+extern int poweroff_charging;
+#endif
+
 static int cmdline_proc_show(struct seq_file *m, void *v)
 {
-	seq_printf(m, "%s\n", new_command_line);
+
+#ifdef CONFIG_SAMSUNG_LPM_MODE
+	if (poweroff_charging) {
+		seq_printf(m, "%s %s\n", saved_command_line,
+				"androidboot.mode=charger");
+		return 0;
+	}
+#endif
+	seq_printf(m, "%s\n", saved_command_line);
 	return 0;
 }
 
