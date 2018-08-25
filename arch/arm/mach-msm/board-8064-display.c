@@ -28,6 +28,10 @@
 #include "devices.h"
 #include "board-8064.h"
 
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
+
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OLED_VIDEO_HD_PT_PANEL)
 /* prim = 1280 x 736 x 3(bpp) x 3(pages) */
@@ -300,9 +304,6 @@ void __init apq8064_mdp_writeback(struct memtype_reserve* reserve_table)
 		mdp_pdata.ov0_wb_size;
 	reserve_table[mdp_pdata.mem_hid].size +=
 		mdp_pdata.ov1_wb_size;
-
-	pr_info("mem_map: mdp reserved with size 0x%lx in pool\n",
-			mdp_pdata.ov0_wb_size + mdp_pdata.ov1_wb_size);
 #endif
 }
 
@@ -481,6 +482,7 @@ static int mipi_dsi_power(int enable)
 	if (enable) {
 
 		pr_info("[lcd] DSI ON\n");
+
 		rc = regulator_set_optimum_mode(reg_l2, 100000);
 		if (rc < 0) {
 			pr_err("set_optimum_mode L2 failed, rc=%d\n", rc);
@@ -492,7 +494,13 @@ static int mipi_dsi_power(int enable)
 			pr_err("enable L2 failed, rc=%d\n", rc);
 			return -ENODEV;
 		}
+
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_resume();
+#endif
 	} else {
+
 
 		pr_info("[lcd] DSI OFF\n");
 		rc = regulator_set_optimum_mode(reg_l2, 100);
@@ -506,6 +514,10 @@ static int mipi_dsi_power(int enable)
 			pr_err("disable reg_L2 failed, rc=%d\n", rc);
 			return -ENODEV;
 		}
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_suspend();
+#endif
 	}
 
 	return rc;
