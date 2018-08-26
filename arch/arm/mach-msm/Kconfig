@@ -1781,7 +1781,7 @@ config MSM_CPU_FREQ_MAX
 config MSM_CPU_FREQ_MIN
 	int "Min CPU Frequency"
 	depends on MSM_CPU_FREQ_SET_MIN_MAX
-	default 270000
+	default 384000
 
 endif # CPU_FREQ_MSM
 
