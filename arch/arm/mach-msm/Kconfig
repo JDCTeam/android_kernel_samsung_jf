@@ -2854,6 +2854,12 @@ config MSM_USE_USER_ACCESSIBLE_TIMERS
 	  Enables MSM-specific user accessible timers via a shared
 	  memory page containing the cycle counter.
 
+config LCD_KCAL
+	tristate "MSM generic LCDC Calibration"
+	default n
+	help
+	  Enable MSM generic LCDC temperature Calibration.
+	  
 config SEC_THERMISTOR
 	bool "Use external thermistor near AP for checking temprature"
 	default n
