@@ -142,20 +142,20 @@ config PM_STD_PARTITION
 	default ""
 	---help---
 	  The default resume partition is the partition that the suspend-
-	  to-disk implementation will look for a suspended disk image.
+	  to-disk implementation will look for a suspended disk image. 
 
-	  The partition specified here will be different for almost every user.
+	  The partition specified here will be different for almost every user. 
 	  It should be a valid swap partition (at least for now) that is turned
-	  on before suspending.
+	  on before suspending. 
 
 	  The partition specified can be overridden by specifying:
 
-		resume=/dev/<other device>
+		resume=/dev/<other device> 
 
-	  which will set the resume partition to the device specified.
+	  which will set the resume partition to the device specified. 
 
 	  Note there is currently not a way to specify which device to save the
-	  suspended image to. It will simply pick the first available swap
+	  suspended image to. It will simply pick the first available swap 
 	  device.
 
 config PM_SLEEP
@@ -303,26 +303,6 @@ config PM_GENERIC_DOMAINS
 	bool
 	depends on PM
 
-config WQ_POWER_EFFICIENT_DEFAULT
-	bool "Enable workqueue power-efficient mode by default"
-	depends on PM
-	default n
-	help
-	  Per-cpu workqueues are generally preferred because they show
-	  better performance thanks to cache locality; unfortunately,
-	  per-cpu workqueues tend to be more power hungry than unbound
-	  workqueues.
-
-	  Enabling workqueue.power_efficient kernel parameter makes the
-	  per-cpu workqueues which were observed to contribute
-	  significantly to power consumption unbound, leading to measurably
-	  lower power usage at the cost of small performance overhead.
-
-	  This config option determines whether workqueue.power_efficient
-	  is enabled by default.
-
-	  If in doubt, say N.
-
 config PM_GENERIC_DOMAINS_RUNTIME
 	def_bool y
 	depends on PM_RUNTIME && PM_GENERIC_DOMAINS
@@ -337,16 +317,3 @@ config SUSPEND_TIME
 	  Prints the time spent in suspend in the kernel log, and
 	  keeps statistics on the time spent in suspend in
 	  /sys/kernel/debug/suspend_time
-
-config	BOEFFLA_WL_BLOCKER
-		bool "Boeffla generic wakelock blocker driver"
-		depends on PM
-		default y
-
-config QUICK_WAKEUP
-	bool "Quick wakeup"
-	depends on SUSPEND
-	default n
-	---help---
-	  Allow kernel driver to do periodic jobs without resuming the full system
-	  This option can increase battery life on android powered smartphone.
