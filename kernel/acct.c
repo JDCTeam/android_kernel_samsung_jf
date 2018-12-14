@@ -260,10 +260,10 @@ SYSCALL_DEFINE1(acct, const char __user *, name)
 		return -EPERM;
 
 	if (name) {
-		struct filename *tmp = getname(name);
+		char *tmp = getname(name);
 		if (IS_ERR(tmp))
 			return (PTR_ERR(tmp));
-		error = acct_on(tmp->name);
+		error = acct_on(tmp);
 		putname(tmp);
 	} else {
 		struct bsd_acct_struct *acct;

@@ -92,14 +92,14 @@ asmlinkage long
 score_execve(struct pt_regs *regs)
 {
 	int error;
-	struct filename *filename;
+	char *filename;
 
 	filename = getname((char __user*)regs->regs[4]);
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename))
 		return error;
 
-	error = do_execve(filename->name,
+	error = do_execve(filename,
 			  (const char __user *const __user *)regs->regs[5],
 			  (const char __user *const __user *)regs->regs[6],
 			  regs);
