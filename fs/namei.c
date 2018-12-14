@@ -119,63 +119,34 @@
  */
 void final_putname(struct filename *name)
 {
-	if (name->separate) {
-		__putname(name->name);
-		kfree(name);
-	} else {
-		__putname(name);
-	}
+	__putname(name->name);
+	kfree(name);
 }
-
-#define EMBEDDED_NAME_MAX	(PATH_MAX - sizeof(struct filename))
 
 static struct filename *
 getname_flags(const char __user *filename, int flags, int *empty)
 {
 	struct filename *result, *err;
-	int len;
-	long max;
 	char *kname;
+	int len;
 
-	result = __getname();
+	/* FIXME: create dedicated slabcache? */
+	result = kzalloc(sizeof(*result), GFP_KERNEL);
 	if (unlikely(!result))
 		return ERR_PTR(-ENOMEM);
 
-	/*
-	 * First, try to embed the struct filename inside the names_cache
-	 * allocation
-	 */
-	kname = (char *)result + sizeof(*result);
-	result->name = kname;
-	result->separate = false;
-	max = EMBEDDED_NAME_MAX;
+	kname = __getname();
+	if (unlikely(!kname)) {
+		err = ERR_PTR(-ENOMEM);
+		goto error_free_name;
+	}
 
-recopy:
-	len = strncpy_from_user(kname, filename, max);
+	result->name = kname;
+	result->uptr = filename;
+	len = strncpy_from_user(kname, filename, PATH_MAX);
 	if (unlikely(len < 0)) {
 		err = ERR_PTR(len);
 		goto error;
-	}
-
-	/*
-	 * Uh-oh. We have a name that's approaching PATH_MAX. Allocate a
-	 * separate struct filename so we can dedicate the entire
-	 * names_cache allocation for the pathname, and re-do the copy from
-	 * userland.
-	 */
-	if (len == EMBEDDED_NAME_MAX && max == EMBEDDED_NAME_MAX) {
-		kname = (char *)result;
-
-		result = kzalloc(sizeof(*result), GFP_KERNEL);
-		if (!result) {
-			err = ERR_PTR(-ENOMEM);
-			result = (struct filename *)kname;
-			goto error;
-		}
-		result->name = kname;
-		result->separate = true;
-		max = PATH_MAX;
-		goto recopy;
 	}
 
 	/* The empty path is special. */
@@ -188,15 +159,15 @@ recopy:
 	}
 
 	err = ERR_PTR(-ENAMETOOLONG);
-	if (unlikely(len >= PATH_MAX))
-		goto error;
-
-	result->uptr = filename;
-	audit_getname(result);
-	return result;
+	if (likely(len < PATH_MAX)) {
+		audit_getname(result);
+		return result;
+	}
 
 error:
-	final_putname(result);
+	__putname(kname);
+error_free_name:
+	kfree(result);
 	return err;
 }
 

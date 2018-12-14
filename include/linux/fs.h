@@ -2094,9 +2094,8 @@ static inline int break_lease(struct inode *inode, unsigned int mode)
 
 /* fs/open.c */
 struct filename {
-	const char		*name;	/* pointer to actual string */
-	const __user char	*uptr;	/* original userland pointer */
-	bool			separate; /* should "name" be freed? */
+	const char *name;		/* pointer to actual string */
+	const __user char *uptr;	/* original userland pointer */
 };
 
 extern int do_truncate(struct dentry *, loff_t start, unsigned int time_attrs,
