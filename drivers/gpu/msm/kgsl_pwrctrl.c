@@ -202,7 +202,15 @@ static int kgsl_pwrctrl_thermal_pwrlevel_store(struct device *dev,
 	if (level > pwr->num_pwrlevels - 2)
 		level = pwr->num_pwrlevels - 2;
 
-	pwr->thermal_pwrlevel = level;
+	if (level > 7)
+		level = 7;
+
+	if (level == 0)
+		pwr->thermal_pwrlevel = level;
+	else if (level == 1)
+		pwr->thermal_pwrlevel = level;
+	else
+		pwr->thermal_pwrlevel = level - 2;
 
 	/*
 	 * If there is no power policy set the clock to the requested thermal
