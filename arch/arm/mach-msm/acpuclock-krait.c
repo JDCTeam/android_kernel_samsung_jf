@@ -39,6 +39,7 @@
 
 #include "acpuclock.h"
 #include "acpuclock-krait.h"
+#include "acpuclock-common.h"
 #include "avs.h"
 #ifdef CONFIG_SEC_DEBUG_DCVS_LOG
 #include <mach/sec_debug.h>
