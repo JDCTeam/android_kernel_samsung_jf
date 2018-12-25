@@ -780,7 +780,13 @@ config BLUEDROID_PM
 
           Say Y here to compile support for bluedroid_pm support into the kernel
           or say M to compile it as module (bluedroid_pm).
-
+          
+config GAMMA_CONTROL
+       bool "Gamma Control for OLED"
+       depends on FB_MSM_MIPI_DSI_SAMSUNG_OCTA
+       default y
+       help
+       This adds full support for shifting RGB panel colors.
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"

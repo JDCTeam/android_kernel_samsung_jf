@@ -90,3 +90,4 @@ obj-$(CONFIG_SEC_TORCH_FLASH)	+= sec_torch.o
 obj-$(CONFIG_TIMA_LOG)		+= tima_debug_log.o
 obj-$(CONFIG_UID_CPUTIME) += uid_cputime.o
 obj-$(CONFIG_BLUEDROID_PM)      += bluedroid_pm.o
+obj-$(CONFIG_GAMMA_CONTROL)	+= gamma_control.o
