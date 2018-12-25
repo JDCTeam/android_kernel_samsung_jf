@@ -28,7 +28,7 @@
 #include <asm/page.h>
 #include <mach/msm_dcvs.h>
 #include <trace/events/mpdcvs_trace.h>
-#include "krait-defines.h"
+#include "acpuclock-common.h"
 
 #define CORE_HANDLE_OFFSET (0xA0)
 #define __err(f, ...) pr_err("MSM_DCVS: %s: " f, __func__, __VA_ARGS__)
