@@ -364,5 +364,19 @@ struct msm_frame_info {
 	uint32_t path;
 };
 
+enum msm_vfe_frame_skip_pattern {
+	NO_SKIP,
+	EVERY_2FRAME,
+	EVERY_3FRAME,
+	EVERY_4FRAME,
+	EVERY_5FRAME,
+	EVERY_6FRAME,
+	EVERY_7FRAME,
+	EVERY_8FRAME,
+	EVERY_16FRAME,
+	EVERY_32FRAME,
+	MAX_SKIP,
+};
+
 #endif /*__MSM_ISP_H__*/
 

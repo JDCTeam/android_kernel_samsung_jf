@@ -473,6 +473,7 @@ struct msm_isp_event_ctrl {
 #define MSM_CAM_APP_NOTIFY_EVENT  0
 #define MSM_CAM_APP_NOTIFY_ERROR_EVENT  1
 
+
 /* this one is used to send ctrl/status up to config thread */
 
 struct msm_stats_event_ctrl {
