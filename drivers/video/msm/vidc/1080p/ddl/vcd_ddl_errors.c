@@ -289,7 +289,7 @@ static u32 ddl_handle_core_recoverable_errors(
 		else
 			ddl_release_command_channel(ddl_context,
 				ddl->command_channel);
-			status = true;
+		status = true;
 	}
 	return status;
 }

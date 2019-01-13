@@ -2109,7 +2109,7 @@ static int synaptics_load_fw_from_ums(struct synaptics_rmi4_data *data)
 			error = -EIO;
 		} else
 			error = synaptics_fw_updater(fw_data, true, false);
-			if (error < 0)
+		if (error < 0)
 				dev_err(&data->i2c_client->dev,
 					"%s: failed update firmware\n",
 					__func__);

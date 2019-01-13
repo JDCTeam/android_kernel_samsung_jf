@@ -2015,7 +2015,7 @@ map_ion_error:
 	if (client_ctx->recon_buffer_ion_handle[i])
 		ion_free(client_ctx->user_ion_client,
 			client_ctx->recon_buffer_ion_handle[i]);
-		client_ctx->recon_buffer_ion_handle[i] = NULL;
+	client_ctx->recon_buffer_ion_handle[i] = NULL;
 import_ion_error:
 	return false;
 }

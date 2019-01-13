@@ -1395,7 +1395,7 @@ static const char *sb_tx6_mux_text[] = {
 		"DEC6"
 };
 
-static const char const *sb_tx7_to_tx10_mux_text[] = {
+static const char *sb_tx7_to_tx10_mux_text[] = {
 	"ZERO", "RMIX1", "RMIX2", "RMIX3", "RMIX4", "RMIX5", "RMIX6", "RMIX7",
 		"DEC1", "DEC2", "DEC3", "DEC4", "DEC5", "DEC6", "DEC7", "DEC8",
 		"DEC9", "DEC10"
@@ -1425,7 +1425,7 @@ static const char *dec6_mux_text[] = {
 	"ZERO", "DMIC6", "ADC1",
 };
 
-static const char const *dec7_mux_text[] = {
+static const char *dec7_mux_text[] = {
 	"ZERO", "DMIC1", "DMIC6", "ADC1", "ADC6", "ANC1_FB", "ANC2_FB",
 };
 
@@ -1441,12 +1441,12 @@ static const char *dec10_mux_text[] = {
 	"ZERO", "DMIC3", "DMIC6", "ADC1", "ADC4", "ADCMB", "ANC1_FB", "ANC2_FB",
 };
 
-static const char const *anc_mux_text[] = {
+static const char  *anc_mux_text[] = {
 	"ZERO", "ADC1", "ADC2", "ADC3", "ADC4", "ADC5", "ADC6", "ADC_MB",
 		"RSVD_1", "DMIC1", "DMIC2", "DMIC3", "DMIC4", "DMIC5", "DMIC6"
 };
 
-static const char const *anc1_fb_mux_text[] = {
+static const char *anc1_fb_mux_text[] = {
 	"ZERO", "EAR_HPH_L", "EAR_LINE_1",
 };
 

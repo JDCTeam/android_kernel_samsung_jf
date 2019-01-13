@@ -17,18 +17,5 @@
 #ifndef __ARCH_ARM_MACH_MSM_ACPUCLOCK_COMMON_H
 #define __ARCH_ARM_MACH_MSM_ACPUCLOCK_COMMON_H
 
-#ifdef CONFIG_OC_ULTIMATE
-#ifdef CONFIG_LOW_CPUCLOCKS
-#define FREQ_TABLE_SIZE         41
-#else
-#define FREQ_TABLE_SIZE         37
-#endif
-#else
-#ifdef CONFIG_LOW_CPUCLOCKS
-#define FREQ_TABLE_SIZE         39
-#else
-#define FREQ_TABLE_SIZE         35
-#endif
-#endif
 
 #endif  /* __ARCH_ARM_MACH_MSM_ACPUCLOCK_COMMON_H */

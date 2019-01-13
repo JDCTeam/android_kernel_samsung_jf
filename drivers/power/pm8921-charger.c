@@ -3608,15 +3608,15 @@ static void btc_override_worker(struct work_struct *work)
 		if (decidegc < chip->btc_override_hot_decidegc -
 				chip->hysteresis_temp_dc)
 			/* stop forcing batt hot */
-			rc = pm_chg_override_hot(chip, 0);
-			if (rc)
-				pr_err("Couldnt write 0 to hot comp\n");
+		rc = pm_chg_override_hot(chip, 0);
+		if (rc)
+			pr_err("Couldnt write 0 to hot comp\n");
 	} else {
 		if (decidegc >= chip->btc_override_hot_decidegc)
 			/* start forcing batt hot */
 			rc = pm_chg_override_hot(chip, 1);
-			if (rc && chip->btc_panic_if_cant_stop_chg)
-				panic("Couldnt override comps to stop chg\n");
+		if (rc && chip->btc_panic_if_cant_stop_chg)
+			panic("Couldnt override comps to stop chg\n");
 	}
 
 	temp = pm_chg_get_rt_status(chip, BATTTEMP_COLD_IRQ);
@@ -3625,14 +3625,14 @@ static void btc_override_worker(struct work_struct *work)
 				chip->hysteresis_temp_dc)
 			/* stop forcing batt cold */
 			rc = pm_chg_override_cold(chip, 0);
-			if (rc)
-				pr_err("Couldnt write 0 to cold comp\n");
+		if (rc)
+			pr_err("Couldnt write 0 to cold comp\n");
 	} else {
 		if (decidegc <= chip->btc_override_cold_decidegc)
 			/* start forcing batt cold */
 			rc = pm_chg_override_cold(chip, 1);
-			if (rc && chip->btc_panic_if_cant_stop_chg)
-				panic("Couldnt override comps to stop chg\n");
+		if (rc && chip->btc_panic_if_cant_stop_chg)
+			panic("Couldnt override comps to stop chg\n");
 	}
 
 	if ((is_dc_chg_plugged_in(the_chip) || is_usb_chg_plugged_in(the_chip))
