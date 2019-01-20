@@ -45,6 +45,7 @@ MISC	+= misc.o
 AFLAGS_decompress.o += -Wa,-march=armv7-a$(plus_sec)
 AFLAGS_decompress.o += -Wa,-mcpu=cortex-a15
 DECOMPRESS = decompress.o
+CFLAGS_decompress.o := -Os
 FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
 
 # string library code (-Os is enforced to keep it much smaller)
