@@ -295,7 +295,6 @@ config ATH6K_LEGACY_EXT
 
 config WCNSS_CORE
 	tristate "Qualcomm WCNSS CORE driver"
-	depends on ARCH_MSM8960
 	select WIRELESS_EXT
 	select WEXT_PRIV
 	select WEXT_CORE
@@ -303,15 +302,32 @@ config WCNSS_CORE
 	---help---
 	  Core driver for the Qualcomm WCNSS triple play connectivity subsystem
 
+config WCNSS_CORE_PRONTO
+	tristate "Qualcomm WCNSS Pronto Support"
+	depends on WCNSS_CORE
+	---help---
+	  Pronto Support for the Qualcomm WCNSS triple play connectivity subsystem
+
 config WCNSS_MEM_PRE_ALLOC
 	tristate "WCNSS pre-alloc memory support"
 	depends on WCNSS_CORE
 	---help---
 	  Pre-allocate memory for the WLAN driver module
 
+config WCNSS_REGISTER_DUMP_ON_BITE
+	bool "Enable/disable WCNSS register dump when there is a WCNSS bite"
+	depends on WCNSS_CORE_PRONTO
+	help
+	 When Apps recieves a WDOG bite from WCNSS, collecting a register dump
+	 of WCNSS is helpful to root cause the failure. WCNSS may not be
+	 properly clocked in some WCNSS bite cases, and that may cause unclocked
+	 register access failures. So this feature is to enable/disable the
+	 register dump on WCNSS WDOG bite.
+
 source "drivers/net/wireless/ath/Kconfig"
 source "drivers/net/wireless/b43/Kconfig"
 source "drivers/net/wireless/b43legacy/Kconfig"
+source "drivers/net/wireless/bcmdhd/Kconfig"
 source "drivers/net/wireless/bcmdhd/Kconfig"
 source "drivers/net/wireless/brcm80211/Kconfig"
 source "drivers/net/wireless/hostap/Kconfig"
@@ -328,6 +344,5 @@ source "drivers/net/wireless/wl1251/Kconfig"
 source "drivers/net/wireless/wl12xx/Kconfig"
 source "drivers/net/wireless/zd1211rw/Kconfig"
 source "drivers/net/wireless/mwifiex/Kconfig"
-source "drivers/net/wireless/mwlan_aarp/Kconfig"
 
 endif # WLAN
