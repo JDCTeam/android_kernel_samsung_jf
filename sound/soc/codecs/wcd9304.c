@@ -1104,16 +1104,16 @@ static const char *dec4_mux_text[] = {
 	"ZERO", "DMIC4", "ADC1", "ADC2", "ADC3", "DMIC3", "DMIC2", "DMIC1"
 };
 
-static const char const *anc_mux_text[] = {
+static const char *anc_mux_text[] = {
 	"ZERO", "ADC1", "ADC2", "ADC3", "RSVD1", "RSVD2", "RSVD3",
 	"MBADC", "RSVD4", "DMIC1", "DMIC2",	"DMIC3", "DMIC4"
 };
 
-static const char const *anc1_fb_mux_text[] = {
+static const char *anc1_fb_mux_text[] = {
 	"ZERO", "EAR_HPH_L", "EAR_LINE_1",
 };
 
-static const char const *iir_inp1_text[] = {
+static const char *iir_inp1_text[] = {
 	"ZERO", "DEC1", "DEC2", "DEC3", "DEC4", "ZERO", "ZERO", "ZERO",
 	"ZERO", "ZERO", "ZERO", "RX1", "RX2", "RX3", "RX4", "RX5",
 };
