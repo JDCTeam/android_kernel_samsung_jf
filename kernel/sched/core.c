@@ -73,6 +73,7 @@
 #include <linux/init_task.h>
 #include <linux/binfmts.h>
 #include <linux/cpufreq.h>
+#include <linux/sched.h>
 
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
@@ -2498,7 +2499,6 @@ unsigned long this_cpu_loadx(int i)
  *  This covers the NO_HZ=n code, for extra head-aches, see the comment below.
  */
 
-#ifdef CONFIG_INTELLI_PLUG
 unsigned long avg_nr_running(void)
 {
 	unsigned long i, sum = 0;
@@ -2551,7 +2551,6 @@ unsigned long avg_cpu_nr_running(unsigned int cpu)
 	return ave_nr_running;
 }
 EXPORT_SYMBOL(avg_cpu_nr_running);
-#endif
 
 /*
  * Global load-average calculations
