@@ -1818,6 +1818,12 @@ config CPU_VOLTAGE_TABLE
 	help
 	  Krait User Voltage Control
 
+config GPU_VOLTAGE_TABLE
+	bool "Enable GPU Voltage Table via sysfs for adjustements"
+	default n
+	help
+	  Kgsl User Votlage Control
+	  
 config LOW_CPUCLOCKS
 	bool "Enable ultra low CPU clocks"
 	default n

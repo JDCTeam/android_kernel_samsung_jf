@@ -721,6 +721,27 @@ static ssize_t store_vdd_levels(struct kobject *a, struct attribute *b, const ch
 
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 
+
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+
+extern ssize_t get_gpu_vdd_levels_str(char *buf);
+extern void set_gpu_vdd_levels(int uv_tbl[]);
+
+ssize_t show_gpu_vdd_levels(struct kobject *a, struct attribute *b, char *buf)
+{
+	return get_gpu_vdd_levels_str(buf);
+}
+
+ssize_t store_gpu_vdd_levels(struct kobject *a, struct attribute *b, const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;
+	unsigned int u[3];
+	ret = sscanf(buf, "%d %d %d", &u[0], &u[1], &u[2]);
+	set_gpu_vdd_levels(u);
+	return count;
+}
+#endif	/* CONFIG_GPU_VOLTAGE_TABLE */
+
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -739,7 +760,9 @@ cpufreq_freq_attr_rw(scaling_setspeed);
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 define_one_global_rw(vdd_levels);
 #endif
-
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+define_one_global_rw(gpu_vdd_levels);
+#endif
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
 	&cpuinfo_max_freq.attr,
@@ -767,6 +790,19 @@ static struct attribute_group vddtbl_attr_group = {
 	.name = "vdd_table",
 };
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
+
+
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+static struct attribute *gpuvddtbl_attrs[] = {
+	&gpu_vdd_levels.attr,
+	NULL
+};
+
+static struct attribute_group gpuvddtbl_attr_group = {
+	.attrs = gpuvddtbl_attrs,
+	.name = "gpu_vdd_table",
+};
+#endif	/* CONFIG_GPU_VOLTAGE_TABLE */
 
 struct kobject *cpufreq_global_kobject;
 EXPORT_SYMBOL(cpufreq_global_kobject);
@@ -2088,7 +2124,7 @@ EXPORT_SYMBOL_GPL(cpufreq_unregister_driver);
 static int __init cpufreq_core_init(void)
 {
 	int cpu;
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
+#if defined(CONFIG_CPU_VOLTAGE_TABLE) || defined(CONFIG_GPU_VOLTAGE_TABLE) 
 	int rc;
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 
@@ -2111,8 +2147,11 @@ static int __init cpufreq_core_init(void)
 	register_syscore_ops(&cpufreq_syscore_ops);
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 	rc = sysfs_create_group(cpufreq_global_kobject, &vddtbl_attr_group);
+	
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
-
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+	rc = sysfs_create_group(cpufreq_global_kobject, &gpuvddtbl_attr_group);
+#endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 	return 0;
 }
 core_initcall(cpufreq_core_init);

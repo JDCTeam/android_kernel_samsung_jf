@@ -381,6 +381,47 @@ enum vdd_dig_levels {
 	VDD_DIG_NUM
 };
 
+
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+static int vdd_uv[] = {
+	[VDD_DIG_NONE]    =       0,
+	[VDD_DIG_LOW]     =  945000,
+	[VDD_DIG_NOMINAL] = 1050000,
+	[VDD_DIG_HIGH]    = 1150000
+};
+
+ssize_t get_gpu_vdd_levels_str(char *buf)
+{
+	int i, len = 0;
+
+	if (buf)
+	{
+		for (i = 1; i <= 3; i++)
+		{
+			len += sprintf(buf + len, "%d\n", vdd_uv[i]);
+		}
+	}
+	return len;
+}
+
+void set_gpu_vdd_levels(int uv_tbl[])
+{
+	int i;
+	for (i = 1; i <= 3; i++)
+	{
+		vdd_uv[i] = uv_tbl[i - 1];
+	}
+}
+
+static int set_vdd_dig_8960(struct clk_vdd_class *vdd_class, int level)
+{
+	int ret;
+	ret = rpm_vreg_set_voltage(RPM_VREG_ID_PM8921_S3, RPM_VREG_VOTER3,
+				    vdd_uv[level], vdd_uv[VDD_DIG_HIGH], 1);
+	//pr_alert("GPU VOLTAGE - %d - %d", vdd_uv[level], ret);
+	return ret;
+}
+#else
 static int set_vdd_dig_8960(struct clk_vdd_class *vdd_class, int level)
 {
 	static const int vdd_uv[] = {
@@ -392,6 +433,7 @@ static int set_vdd_dig_8960(struct clk_vdd_class *vdd_class, int level)
 	return rpm_vreg_set_voltage(RPM_VREG_ID_PM8921_S3, RPM_VREG_VOTER3,
 				    vdd_uv[level], 1150000, 1);
 }
+#endif
 
 static DEFINE_VDD_CLASS(vdd_dig, set_vdd_dig_8960, VDD_DIG_NUM);
 
