@@ -516,6 +516,18 @@ CONFIG_CC_OPTIMIZE_FOR_SPEED=y
 
 CONFIG_MSM_CPUFREQ_LIMITER=m
 CONFIG_LOW_CPUCLOCKS=y
+<<<<<<< HEAD:arch/arm/configs/twrp_defconfig
 CONFIG_CPU_OVERCLOCK=y
 CONFIG_OC_ULTIMATE=y
 >>>>>>> 93df7216705... arch: Rewrite the overclock feature from scratch:arch/arm/configs/side_jf_defconfig
+=======
+# CONFIG_CPU_OVERCLOCK is not set
+# CONFIG_OC_ULTIMATE is not set
+
+#CFQ
+CONFIG_IOSCHED_CFQ=y
+CONFIG_DEFAULT_CFQ=y
+CONFIG_DEFAULT_IOSCHED="cfq"
+
+CONFIG_GPU_VOLTAGE_TABLE=y
+>>>>>>> 948d2499f0e... kernel: Expose GPU voltage table:arch/arm/configs/side_jf_defconfig
