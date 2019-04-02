@@ -104,7 +104,7 @@ struct cpufreq_policy {
 	unsigned int            util;  /* CPU utilization at max frequency */
 	unsigned int		policy; /* see above */
 	struct cpufreq_governor	*governor; /* see below */
-
+	void 				*governor_data;
 	struct work_struct	update; /* if update_policy() needs to be
 					 * called, but you're in IRQ context */
 
