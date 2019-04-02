@@ -575,8 +575,14 @@ CONFIG_CPU_FREQ_GOV_BIOSHOCK=y
 CONFIG_CPU_FREQ_GOV_USERSPACE=y
 
 <<<<<<< HEAD:arch/arm/configs/twrp_defconfig
+<<<<<<< HEAD:arch/arm/configs/twrp_defconfig
 CONFIG_GPU_VOLTAGE_TABLE=y
 >>>>>>> 948d2499f0e... kernel: Expose GPU voltage table:arch/arm/configs/side_jf_defconfig
 =======
 CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE=y
 >>>>>>> adeb0e39e1b... cpufreq: Add a ton of governors:arch/arm/configs/side_jf_defconfig
+=======
+CONFIG_CPU_FREQ_GOV_COMMON=y
+
+CONFIG_CPU_FREQ_DEFAULT_GOV_INTERACTIVE=y
+>>>>>>> f6a36c3b8fc... kernel: Introduce cpufreq_governor helper:arch/arm/configs/side_jf_defconfig
