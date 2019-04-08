@@ -6393,7 +6393,7 @@ void tabla_mbhc_cal(struct snd_soc_codec *codec)
 void *tabla_mbhc_cal_btn_det_mp(const struct tabla_mbhc_btn_detect_cfg* btn_det,
 				const enum tabla_mbhc_btn_det_mem mem)
 {
-	void *ret = &btn_det->_v_btn_low;
+	void *ret = (void *)&btn_det->_v_btn_low;
 
 	switch (mem) {
 	case TABLA_BTN_DET_GAIN:

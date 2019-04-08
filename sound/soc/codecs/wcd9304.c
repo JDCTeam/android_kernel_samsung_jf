@@ -4480,7 +4480,7 @@ void sitar_mbhc_cal(struct snd_soc_codec *codec)
 void *sitar_mbhc_cal_btn_det_mp(const struct sitar_mbhc_btn_detect_cfg* btn_det,
 				const enum sitar_mbhc_btn_det_mem mem)
 {
-	void *ret = &btn_det->_v_btn_low;
+		void *ret = (void *)&btn_det->_v_btn_low;
 
 	switch (mem) {
 	case SITAR_BTN_DET_GAIN:
@@ -6492,15 +6492,15 @@ static int sitar_codec_probe(struct snd_soc_codec *codec)
 err_hphr_ocp_irq:
 	wcd9xxx_free_irq(codec->control_data,
 			SITAR_IRQ_HPH_PA_OCPL_FAULT, sitar);
-			
+
 err_hphl_ocp_irq:
 	wcd9xxx_free_irq(codec->control_data,
 			SITAR_IRQ_SLIMBUS, sitar);
-		
+
 err_slimbus_irq:
 	wcd9xxx_free_irq(codec->control_data,
 			SITAR_IRQ_MBHC_RELEASE, sitar);
-			
+
 err_release_irq:
 	wcd9xxx_free_irq(codec->control_data,
 			SITAR_IRQ_MBHC_POTENTIAL, sitar);
