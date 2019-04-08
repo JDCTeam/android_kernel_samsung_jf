@@ -15,7 +15,9 @@
  *
  */
 
+#include <asm/cputime.h>
 #include <linux/kernel.h>
+#include <linux/kernel_stat.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/notifier.h>
@@ -25,6 +27,7 @@
 #include <linux/spinlock.h>
 #include <linux/device.h>
 #include <linux/slab.h>
+#include <linux/tick.h>
 #include <linux/cpu.h>
 #include <linux/completion.h>
 #include <linux/mutex.h>
@@ -39,14 +42,6 @@
  */
 static struct cpufreq_driver *cpufreq_driver;
 static DEFINE_PER_CPU(struct cpufreq_policy *, cpufreq_cpu_data);
-#ifdef CONFIG_HOTPLUG_CPU
-/* This one keeps track of the previously set governor of a removed CPU */
-struct cpufreq_cpu_save_data {
-	char gov[CPUFREQ_NAME_LEN];
-	unsigned int max, min;
-};
-static DEFINE_PER_CPU(struct cpufreq_cpu_save_data, cpufreq_policy_save);
-#endif
 static DEFINE_SPINLOCK(cpufreq_driver_lock);
 
 static struct kset *cpufreq_kset;
@@ -144,6 +139,42 @@ void disable_cpufreq(void)
 }
 static LIST_HEAD(cpufreq_governor_list);
 static DEFINE_MUTEX(cpufreq_governor_mutex);
+
+
+static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
+{
+	u64 idle_time;
+	u64 cur_wall_time;
+	u64 busy_time;
+
+	cur_wall_time = jiffies64_to_cputime64(get_jiffies_64());
+
+	busy_time = kcpustat_cpu(cpu).cpustat[CPUTIME_USER];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SYSTEM];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_IRQ];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SOFTIRQ];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_STEAL];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
+
+	idle_time = cur_wall_time - busy_time;
+	if (wall)
+		*wall = cputime_to_usecs(cur_wall_time);
+
+	return cputime_to_usecs(idle_time);
+}
+
+u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy)
+{
+	u64 idle_time = get_cpu_idle_time_us(cpu, io_busy ? wall : NULL);
+
+	if (idle_time == -1ULL)
+		return get_cpu_idle_time_jiffy(cpu, wall);
+	else if (!io_busy)
+		idle_time += get_cpu_iowait_time_us(cpu, wall);
+
+	return idle_time;
+}
+EXPORT_SYMBOL_GPL(get_cpu_idle_time);
 
 static struct cpufreq_policy *__cpufreq_cpu_get(unsigned int cpu, int sysfs)
 {
@@ -690,6 +721,27 @@ static ssize_t store_vdd_levels(struct kobject *a, struct attribute *b, const ch
 
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 
+
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+
+extern ssize_t get_gpu_vdd_levels_str(char *buf);
+extern void set_gpu_vdd_levels(int uv_tbl[]);
+
+ssize_t show_gpu_vdd_levels(struct kobject *a, struct attribute *b, char *buf)
+{
+	return get_gpu_vdd_levels_str(buf);
+}
+
+ssize_t store_gpu_vdd_levels(struct kobject *a, struct attribute *b, const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;
+	unsigned int u[3];
+	ret = sscanf(buf, "%d %d %d", &u[0], &u[1], &u[2]);
+	set_gpu_vdd_levels(u);
+	return count;
+}
+#endif	/* CONFIG_GPU_VOLTAGE_TABLE */
+
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -708,7 +760,9 @@ cpufreq_freq_attr_rw(scaling_setspeed);
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 define_one_global_rw(vdd_levels);
 #endif
-
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+define_one_global_rw(gpu_vdd_levels);
+#endif
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
 	&cpuinfo_max_freq.attr,
@@ -736,6 +790,19 @@ static struct attribute_group vddtbl_attr_group = {
 	.name = "vdd_table",
 };
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
+
+
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+static struct attribute *gpuvddtbl_attrs[] = {
+	&gpu_vdd_levels.attr,
+	NULL
+};
+
+static struct attribute_group gpuvddtbl_attr_group = {
+	.attrs = gpuvddtbl_attrs,
+	.name = "gpu_vdd_table",
+};
+#endif	/* CONFIG_GPU_VOLTAGE_TABLE */
 
 struct kobject *cpufreq_global_kobject;
 EXPORT_SYMBOL(cpufreq_global_kobject);
@@ -824,26 +891,6 @@ static int cpufreq_add_dev_policy(unsigned int cpu,
 #ifdef CONFIG_SMP
 	unsigned long flags;
 	unsigned int j;
-#ifdef CONFIG_HOTPLUG_CPU
-	struct cpufreq_governor *gov;
-
-	gov = __find_governor(per_cpu(cpufreq_policy_save, cpu).gov);
-	if (gov) {
-		policy->governor = gov;
-		pr_debug("Restoring governor %s for cpu %d\n",
-		       policy->governor->name, cpu);
-	}
-	if (per_cpu(cpufreq_policy_save, cpu).min) {
-		policy->min = per_cpu(cpufreq_policy_save, cpu).min;
-		policy->user_policy.min = policy->min;
-	}
-	if (per_cpu(cpufreq_policy_save, cpu).max) {
-		policy->max = per_cpu(cpufreq_policy_save, cpu).max;
-		policy->user_policy.max = policy->max;
-	}
-	pr_debug("Restoring CPU%d min %d and max %d\n",
-		cpu, policy->min, policy->max);
-#endif
 
 	for_each_cpu(j, policy->cpus) {
 		struct cpufreq_policy *managed_policy;
@@ -1220,15 +1267,6 @@ static int __cpufreq_remove_dev(struct device *dev, struct subsys_interface *sif
 
 #ifdef CONFIG_SMP
 
-#ifdef CONFIG_HOTPLUG_CPU
-	strncpy(per_cpu(cpufreq_policy_save, cpu).gov, data->governor->name,
-			CPUFREQ_NAME_LEN);
-	per_cpu(cpufreq_policy_save, cpu).min = data->user_policy.min;
-	per_cpu(cpufreq_policy_save, cpu).max = data->user_policy.max;
-	pr_debug("Saving CPU%d user policy min %d and max %d\n",
-			cpu, data->user_policy.min, data->user_policy.max);
-#endif
-
 	/* if we have other CPUs still registered, we need to unlink them,
 	 * or else wait_for_completion below will lock up. Clean the
 	 * per_cpu(cpufreq_cpu_data) while holding the lock, and remove
@@ -1249,16 +1287,6 @@ static int __cpufreq_remove_dev(struct device *dev, struct subsys_interface *sif
 			if (j == cpu)
 				continue;
 			pr_debug("removing link for cpu %u\n", j);
-#ifdef CONFIG_HOTPLUG_CPU
-			strncpy(per_cpu(cpufreq_policy_save, j).gov,
-				data->governor->name, CPUFREQ_NAME_LEN);
-			per_cpu(cpufreq_policy_save, j).min
-						= data->user_policy.min;
-			per_cpu(cpufreq_policy_save, j).max
-						= data->user_policy.max;
-			pr_debug("Saving CPU%d user policy min %d and max %d\n",
-					j, data->min, data->max);
-#endif
 			cpu_dev = get_cpu_device(j);
 			kobj = &cpu_dev->kobj;
 			unlock_policy_rwsem_write(cpu);
@@ -1763,28 +1791,12 @@ EXPORT_SYMBOL_GPL(cpufreq_register_governor);
 
 void cpufreq_unregister_governor(struct cpufreq_governor *governor)
 {
-#ifdef CONFIG_HOTPLUG_CPU
-	int cpu;
-#endif
-
 	if (!governor)
 		return;
 
 	if (cpufreq_disabled())
 		return;
-
-#ifdef CONFIG_HOTPLUG_CPU
-	for_each_present_cpu(cpu) {
-		if (cpu_online(cpu))
-			continue;
-		if (!strcmp(per_cpu(cpufreq_policy_save, cpu).gov,
-					governor->name))
-			strcpy(per_cpu(cpufreq_policy_save, cpu).gov, "\0");
-		per_cpu(cpufreq_policy_save, cpu).min = 0;
-		per_cpu(cpufreq_policy_save, cpu).max = 0;
-	}
-#endif
-
+	
 	mutex_lock(&cpufreq_governor_mutex);
 	list_del(&governor->governor_list);
 	mutex_unlock(&cpufreq_governor_mutex);
@@ -2112,7 +2124,7 @@ EXPORT_SYMBOL_GPL(cpufreq_unregister_driver);
 static int __init cpufreq_core_init(void)
 {
 	int cpu;
-#ifdef CONFIG_CPU_VOLTAGE_TABLE
+#if defined(CONFIG_CPU_VOLTAGE_TABLE) || defined(CONFIG_GPU_VOLTAGE_TABLE) 
 	int rc;
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 
@@ -2135,8 +2147,11 @@ static int __init cpufreq_core_init(void)
 	register_syscore_ops(&cpufreq_syscore_ops);
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 	rc = sysfs_create_group(cpufreq_global_kobject, &vddtbl_attr_group);
+	
 #endif	/* CONFIG_CPU_VOLTAGE_TABLE */
-
+#ifdef CONFIG_GPU_VOLTAGE_TABLE
+	rc = sysfs_create_group(cpufreq_global_kobject, &gpuvddtbl_attr_group);
+#endif	/* CONFIG_CPU_VOLTAGE_TABLE */
 	return 0;
 }
 core_initcall(cpufreq_core_init);

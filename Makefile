@@ -358,7 +358,9 @@ CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 CACHE_FLAGS := --param l1-cache-line-size=16 --param l1-cache-size=16 --param l2-cache-size=2048
 OPTI_FLAGS := -s -pipe -O2 -mcpu=cortex-a15 -mtune=cortex-a15 -mfloat-abi=softfp -mfpu=vfpv4 \
 			  -ffast-math -fmodulo-sched -fmodulo-sched-allow-regmoves \
-		      -funsafe-loop-optimizations -funsafe-math-optimizations
+		      -funsafe-loop-optimizations -funsafe-math-optimizations -Wno-discarded-array-qualifiers -Wno-array-bounds \
+		      -Wno-int-in-bool-context -Wno-nonnull -Wno-bool-operation -Wno-switch-bool -Wno-bool-compare \
+		      -Wno-logical-not-parentheses
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
