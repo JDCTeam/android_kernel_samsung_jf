@@ -2198,7 +2198,8 @@ static int kgsl_setup_ion(struct kgsl_mem_entry *entry,
 		entry->memdesc.size += s->length;
 		entry->memdesc.sglen++;
 	}
-
+	
+	entry->memdesc.size = PAGE_ALIGN(entry->memdesc.size);
 	return 0;
 err:
 	ion_free(kgsl_ion_client, handle);
