@@ -742,4 +742,15 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER=y
 CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES=y
 
 CONFIG_POWERSUSPEND=y
+<<<<<<< HEAD:arch/arm/configs/lineageos_jf_defconfig
 >>>>>>> e39e45cdfa2... Added Power Suspend code. by Jean-Pierre Rasquin <yank555.lu@gmail.com>:arch/arm/configs/buff_jf_defconfig
+=======
+
+# ZRAM
+##########################################################
+CONFIG_ZRAM=y
+CONFIG_ZCACHE=y
+CONFIG_ZSMALLOC=y
+CONFIG_STAGING=y
+CONFIG_ZRAM_LZ4_COMPRESS=y
+>>>>>>> ddc0cbd7cfd... Kang zram from shamu and use lz4:arch/arm/configs/buff_jf_defconfig
