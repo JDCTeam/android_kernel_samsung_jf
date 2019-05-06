@@ -726,3 +726,10 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES=y
 
 # Powersuspend lib
 CONFIG_POWERSUSPEND=y
+
+# ZRAM
+##########################################################
+CONFIG_ZRAM=y
+CONFIG_ZCACHE=y
+CONFIG_ZSMALLOC=y
+CONFIG_STAGING=y
