@@ -623,11 +623,14 @@ CONFIG_ANDROID_LMK_ADJ_RBTREE=y
 CONFIG_ANDROID_LOW_MEMORY_KILLER=y
 CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES=y
 
+<<<<<<< HEAD:arch/arm/configs/twrp_defconfig
 CONFIG_POWERSUSPEND=y
 <<<<<<< HEAD:arch/arm/configs/twrp_defconfig
 >>>>>>> e39e45cdfa2... Added Power Suspend code. by Jean-Pierre Rasquin <yank555.lu@gmail.com>:arch/arm/configs/side_jf_defconfig
 =======
 
+=======
+>>>>>>> 0f074b701ad... defconfigs: Get rid of powersuspend helpers:arch/arm/configs/side_jf_defconfig
 # ZRAM
 ##########################################################
 CONFIG_ZRAM=y
