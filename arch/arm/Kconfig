@@ -2089,8 +2089,6 @@ config CP_ACCESS
 
 endmenu
 
-source "arch/arm/mvp/Kconfig"
-
 menu "Boot options"
 
 config USE_OF
