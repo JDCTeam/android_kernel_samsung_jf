@@ -70,6 +70,7 @@ config BCMDHD_NVRAM_PATH
 
 config DHD_USE_STATIC_BUF
 	bool "Enable memory preallocation"
+
 	depends on BCMDHD
 	default n
 	---help---
