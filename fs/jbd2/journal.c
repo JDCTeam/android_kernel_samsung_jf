@@ -502,7 +502,7 @@ int __jbd2_log_start_commit(journal_t *journal, tid_t target)
 		WARN_ONCE(1, "JBD2: bad log_start_commit: %u %u %u %u\n",
 			  journal->j_commit_request,
 			  journal->j_commit_sequence,
-			  target, journal->j_running_transaction ? 
+			  target, journal->j_running_transaction ?
 			  journal->j_running_transaction->t_tid : 0);
 	return 0;
 }
@@ -1929,8 +1929,12 @@ static void __journal_abort_soft (journal_t *journal, int errno)
 
 	__jbd2_journal_abort_hard(journal);
 
-	if (errno)
+	if (errno) {
 		jbd2_journal_update_sb_errno(journal);
+		write_lock(&journal->j_state_lock);
+		journal->j_flags |= JBD2_REC_ERR;
+		write_unlock(&journal->j_state_lock);
+	}
 }
 
 /**

@@ -1,8 +1,8 @@
 /*
- *	Linux INET6 implementation 
+ *	Linux INET6 implementation
  *
  *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>	
+ *	Pedro Roque		<roque@di.fc.ul.pt>
  *
  *	This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@ struct fib6_config {
 	int		fc_ifindex;
 	u32		fc_flags;
 	u32		fc_protocol;
+	u32		fc_type;	/* only 8 bits are used */
 
 	struct in6_addr	fc_dst;
 	struct in6_addr	fc_src;
@@ -146,7 +147,7 @@ static inline void rt6_update_expires(struct rt6_info *rt, int timeout)
 	if (!(rt->rt6i_flags & RTF_EXPIRES)) {
 		if (rt->dst.from)
 			dst_release(rt->dst.from);
-		/* dst_set_expires relies on expires == 0 
+		/* dst_set_expires relies on expires == 0
 		 * if it has not been set previously.
 		 */
 		rt->dst.expires = 0;

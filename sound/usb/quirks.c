@@ -177,7 +177,7 @@ static int create_fixed_stream_quirk(struct snd_usb_audio *chip,
 }
 
 /*
- * Create a stream for an Edirol UA-700/UA-25/UA-4FX interface.  
+ * Create a stream for an Edirol UA-700/UA-25/UA-4FX interface.
  * The only way to detect the sample rate is by looking at wMaxPacketSize.
  */
 static int create_uaxx_quirk(struct snd_usb_audio *chip,
@@ -316,6 +316,7 @@ int snd_usb_create_quirk(struct snd_usb_audio *chip,
 		[QUIRK_MIDI_CME] = create_any_midi_quirk,
 		[QUIRK_MIDI_AKAI] = create_any_midi_quirk,
 		[QUIRK_MIDI_FTDI] = create_any_midi_quirk,
+		[QUIRK_MIDI_CH345] = create_any_midi_quirk,
 		[QUIRK_AUDIO_STANDARD_INTERFACE] = create_standard_audio_quirk,
 		[QUIRK_AUDIO_FIXED_ENDPOINT] = create_fixed_stream_quirk,
 		[QUIRK_AUDIO_EDIROL_UAXX] = create_uaxx_quirk,
