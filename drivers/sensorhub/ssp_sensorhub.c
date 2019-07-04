@@ -249,7 +249,7 @@ static void ssp_sensorhub_report_library(struct ssp_sensorhub_data *hub_data)
 {
 	input_report_rel(hub_data->sensorhub_input_dev, DATA, DATA);
 	input_sync(hub_data->sensorhub_input_dev);
-	wake_lock_timeout(&hub_data->sensorhub_wake_lock, WAKE_LOCK_TIMEOUT);
+	wake_lock_timeout(&hub_data->sensorhub_wake_lock, WAKE_LOCK_TIMEOUT/2);
 }
 
 static void ssp_sensorhub_report_large_library(
@@ -257,7 +257,7 @@ static void ssp_sensorhub_report_large_library(
 {
 	input_report_rel(hub_data->sensorhub_input_dev, LARGE_DATA, LARGE_DATA);
 	input_sync(hub_data->sensorhub_input_dev);
-	wake_lock_timeout(&hub_data->sensorhub_wake_lock, WAKE_LOCK_TIMEOUT);
+	wake_lock_timeout(&hub_data->sensorhub_wake_lock, WAKE_LOCK_TIMEOUT/2);
 }
 
 static int ssp_sensorhub_list(struct ssp_sensorhub_data *hub_data,
