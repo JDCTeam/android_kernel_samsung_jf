@@ -50,11 +50,6 @@ config MDP_DEBUG_FS
 	depends on DEBUG_FS
 	bool "MDP Debug FS"
 	default n
-config SEC_DEBUG_MDP
-	bool "MSM MDP debug support"
-	default n
-	---help---
-	  Support for MDP debug
 
 choice
 	prompt "MDP HW version"
