@@ -231,6 +231,7 @@ int mdp4_dtv_pipe_commit(int cndx, int wait)
 * (vp->update_cnt == 0) to unstage pipes after
 * overlay_unset
 */
+	xlog(__func__, wait, vp->update_cnt, 0, 0, 0);
 	vctrl->update_ndx++;
 	vctrl->update_ndx &= 0x01;
 	vp->update_cnt = 0;	/* reset */
