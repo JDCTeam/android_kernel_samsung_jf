@@ -454,7 +454,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	struct task_struct *tsk;
 	struct task_struct *selected = NULL;
 	int rem = 0;
-	const struct cred *cred = current_cred(), *pcred; 
+	const struct cred *pcred; 
 	unsigned int uid = 0;
 	int tasksize;
 	int i;
