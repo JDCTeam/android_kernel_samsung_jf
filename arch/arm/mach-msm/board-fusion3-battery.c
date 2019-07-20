@@ -352,8 +352,8 @@ static int sec_bat_get_cable_from_extended_cable_type(
 			case POWER_SUPPLY_TYPE_USB_ACA:
 			case POWER_SUPPLY_TYPE_CARDOCK:
 			case POWER_SUPPLY_TYPE_OTG:
-				charge_current_max = usb_charge_level;
-				charge_current     = usb_charge_level;
+				charge_current_max = USB_CHARGE_1600;
+				charge_current     = USB_CHARGE_1600;
 				break;
 			/* These are AC connections, apply custom AC current
 			   for all of them */
