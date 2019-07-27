@@ -43,8 +43,6 @@
 #include <linux/fs.h>
 #include <linux/cpuset.h>
 #include <linux/show_mem_notifier.h>
-#include <linux/kobject.h>
-#include <linux/slab.h>
 #include <linux/vmpressure.h>
 #include <linux/powersuspend.h>
 
@@ -94,10 +92,6 @@ static int lowmem_minfree_size = 6;
 static int lmk_fast_run = 1;
 
 static unsigned long lowmem_deathpending_timeout;
-
-static struct shrink_control lowmem_notif_sc = {GFP_KERNEL, 0};
-static size_t lowmem_minfree_notif_trigger;
-static struct kobject *lowmem_notify_kobj;
 
 #define lowmem_print(level, x...)			\
 	do {						\
@@ -419,36 +413,6 @@ void tune_lmk_param(int *other_free, int *other_file, struct shrink_control *sc)
 	}
 }
 
-static void lowmem_notify_killzone_approach(void);
-
-static int get_free_ram(int *other_free, int *other_file,
-		             struct shrink_control *sc)
-{
-	*other_free = global_page_state(NR_FREE_PAGES);
-
-	if (global_page_state(NR_SHMEM) + total_swapcache_pages <
-		global_page_state(NR_FILE_PAGES))
-		*other_file = global_page_state(NR_FILE_PAGES) -
-						global_page_state(NR_SHMEM) -
-						total_swapcache_pages;
-	else
-		*other_file = 0;
-
-	tune_lmk_param(other_free, other_file, sc);
-
-	if (*other_free < lowmem_minfree_notif_trigger &&
-			*other_file < lowmem_minfree_notif_trigger)
-		return 1;
-	else
-		return 0;
-}
-
-#ifdef CONFIG_ANDROID_LMK_ADJ_RBTREE
-static struct task_struct *pick_next_from_adj_tree(struct task_struct *task);
-static struct task_struct *pick_first_task(void);
-static struct task_struct *pick_last_task(void);
-#endif
-
 static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 {
 	struct task_struct *tsk;
@@ -473,10 +437,11 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			return 0;
 	}
 
-	lowmem_notif_sc.gfp_mask = sc->gfp_mask;
+	other_free = global_page_state(NR_FREE_PAGES);
+	other_file = global_page_state(NR_FILE_PAGES) -
+						global_page_state(NR_SHMEM);
 
-	if (get_free_ram(&other_free, &other_file, sc))
-		lowmem_notify_killzone_approach();
+	tune_lmk_param(&other_free, &other_file, sc);
 
 	if (lowmem_adj_size < array_size)
 		array_size = lowmem_adj_size;
@@ -655,128 +620,18 @@ static struct shrinker lowmem_shrinker = {
 	.seeks = DEFAULT_SEEKS * 16
 };
 
-static void low_mem_early_suspend(struct power_suspend *handler)
-{
-	if (lowmem_auto_oom) {
-		mutex_lock(&auto_oom_mutex);
-		memcpy(lowmem_minfree_screen_on, lowmem_minfree, sizeof(lowmem_minfree));
-		memcpy(lowmem_minfree, lowmem_minfree_screen_off, sizeof(lowmem_minfree_screen_off));
-		mutex_unlock(&auto_oom_mutex);
-	}
-}
-
-static void low_mem_late_resume(struct power_suspend *handler)
-{
-	if (lowmem_auto_oom) {
-		mutex_lock(&auto_oom_mutex);
-		memcpy(lowmem_minfree, lowmem_minfree_screen_on, sizeof(lowmem_minfree_screen_on));
-		mutex_unlock(&auto_oom_mutex);
-	}
-}
-
-static struct power_suspend low_mem_suspend = {
-	.suspend = low_mem_early_suspend,
-	.resume = low_mem_late_resume,
-};
-
-static void lowmem_notify_killzone_approach(void)
-{
-	lowmem_print(3, "notification trigger activated\n");
-	sysfs_notify(lowmem_notify_kobj, NULL,
-			"notify_trigger_active");
-}
-
-static ssize_t lowmem_notify_trigger_active_show(struct kobject *k,
-				struct kobj_attribute *attr, char *buf)
-{
-	int other_free, other_file;
-	if (get_free_ram(&other_free, &other_file, &lowmem_notif_sc))
-		return snprintf(buf, 3, "1\n");
-	else
-		return snprintf(buf, 3, "0\n");
-}
-
-static struct kobj_attribute lowmem_notify_trigger_active_attr =
-	__ATTR(notify_trigger_active, S_IRUGO,
-			lowmem_notify_trigger_active_show, NULL);
-
-static struct attribute *lowmem_notify_default_attrs[] = {
-	&lowmem_notify_trigger_active_attr.attr, NULL,
-};
-
-static ssize_t lowmem_show(struct kobject *k, struct attribute *attr, char *buf)
-{
-	struct kobj_attribute *kobj_attr;
-	kobj_attr = container_of(attr, struct kobj_attribute, attr);
-	return kobj_attr->show(k, kobj_attr, buf);
-}
-
-static const struct sysfs_ops lowmem_notify_ops = {
-	.show = lowmem_show,
-};
-
-static void lowmem_notify_kobj_release(struct kobject *kobj)
-{
-	/* Nothing to be done here */
-}
-
-static struct kobj_type lowmem_notify_kobj_type = {
-	.release = lowmem_notify_kobj_release,
-	.sysfs_ops = &lowmem_notify_ops,
-	.default_attrs = lowmem_notify_default_attrs,
-};
-
-#ifdef CONFIG_ANDROID_BG_SCAN_MEM
-static int lmk_task_migration_notify(struct notifier_block *nb,
-					unsigned long data, void *arg)
-{
-	struct shrink_control sc = {
-		.gfp_mask = GFP_KERNEL,
-		.nr_to_scan = 1,
-	};
-
-	lowmem_shrink(&lowmem_shrinker, &sc);
-
-	return NOTIFY_OK;
-}
-
-static struct notifier_block tsk_migration_nb = {
-	.notifier_call = lmk_task_migration_notify,
-};
-#endif
-
 static int __init lowmem_init(void)
 {
-	int rc;
-
-	lowmem_notify_kobj = kzalloc(sizeof(*lowmem_notify_kobj), GFP_KERNEL);
-	if(!lowmem_notify_kobj) {
-		return -ENOMEM;
-	}
-
-	rc = kobject_init_and_add(lowmem_notify_kobj, &lowmem_notify_kobj_type,
-			mm_kobj, "lowmemkiller");
-	if(rc) {
-		kfree(lowmem_notify_kobj);
-		return rc;
-	}
-
 	register_shrinker(&lowmem_shrinker);
 	register_power_suspend(&low_mem_suspend);
 
 	vmpressure_notifier_register(&lmk_vmpr_nb);
 
-#ifdef CONFIG_ANDROID_BG_SCAN_MEM
-	raw_notifier_chain_register(&bgtsk_migration_notifier_head,
-					&tsk_migration_nb);
-#endif
 	return 0;
 }
 
 static void __exit lowmem_exit(void)
 {
-	kobject_put(lowmem_notify_kobj);
-	kfree(lowmem_notify_kobj);
 	unregister_shrinker(&lowmem_shrinker);
 #ifdef CONFIG_ANDROID_BG_SCAN_MEM
 	raw_notifier_chain_unregister(&bgtsk_migration_notifier_head,
@@ -957,10 +812,6 @@ module_param_array_named(minfree_screen_off, lowmem_minfree_screen_off, uint, &l
 			 S_IRUGO | S_IWUSR);
 module_param_named(debug_level, lowmem_debug_level, uint, S_IRUGO | S_IWUSR);
 module_param_named(lmk_fast_run, lmk_fast_run, int, S_IRUGO | S_IWUSR);
-module_param_named(notify_trigger, lowmem_minfree_notif_trigger, uint,
-			 S_IRUGO | S_IWUSR);
-module_param_named(auto_oom, lowmem_auto_oom, uint, S_IRUGO | S_IWUSR);
-
 module_init(lowmem_init);
 module_exit(lowmem_exit);
 
