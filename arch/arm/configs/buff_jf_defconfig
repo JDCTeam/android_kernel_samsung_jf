@@ -731,12 +731,6 @@ CONFIG_END_MEM=0xffffffff
 CONFIG_HAVE_END_MEM=y
 CONFIG_ATAGS_PROC=y
 
-##########################################################
-# LMK
-CONFIG_ANDROID_LMK_ADJ_RBTREE=y
-CONFIG_ANDROID_LOW_MEMORY_KILLER=y
-CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES=y
-
 # ZRAM
 ##########################################################
 CONFIG_ZRAM=y
