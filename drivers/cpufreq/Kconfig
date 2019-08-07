@@ -93,10 +93,6 @@ config CPU_FREQ_DEFAULT_GOV_BIOSHOCK
 config CPU_FREQ_DEFAULT_GOV_ABYSSPLUG
 	bool "abyssplug"
 	select CPU_FREQ_GOV_ABYSSPLUG
-
-config CPU_FREQ_DEFAULT_GOV_ADAPTIVE
-	bool "adaptive"
-	select CPU_FREQ_GOV_ADAPTIVE
 	
 config CPU_FREQ_DEFAULT_GOV_ASSWAX
  	 bool "asswax"
@@ -225,10 +221,6 @@ config CPU_FREQ_GOV_ABYSSPLUG
 	  If you don't have one of these architectures or devices, use
 	  'ondemand' instead.
 	  If in doubt, say N.
-	
-config CPU_FREQ_GOV_ADAPTIVE
-	tristate "'adaptive' cpufreq policy governor"
-	help
 	
 config CPU_FREQ_GOV_ASSWAX
 	tristate "'asswax' cpufreq governor"
