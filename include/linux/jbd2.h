@@ -796,7 +796,7 @@ struct journal_s
 	 * j_checkpoint_mutex.  [j_checkpoint_mutex]
 	 */
 	struct buffer_head	*j_chkpt_bhs[JBD2_NR_BATCH];
-
+	
 	/*
 	 * Journal head: identifies the first unused block in the journal.
 	 * [j_state_lock]
@@ -964,7 +964,6 @@ struct journal_s
 #define JBD2_ABORT_ON_SYNCDATA_ERR	0x040	/* Abort the journal on file
 						 * data write error in ordered
 						 * mode */
-#define JBD2_REC_ERR	0x080	/* The errno in the sb has been recorded */
 
 /*
  * Function declarations for the journaling transaction and buffer

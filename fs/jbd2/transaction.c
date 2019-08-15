@@ -304,7 +304,7 @@ repeat:
 	}
 
 	/* OK, account for the buffers that this operation expects to
-	 * use and add the handle to the running transaction.
+	 * use and add the handle to the running transaction. 
 	 */
 	update_t_max_wait(transaction, ts);
 	handle->h_transaction = transaction;
@@ -1943,7 +1943,6 @@ static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh)
 				/* The orphan record's transaction has
 				 * committed.  We can cleanse this buffer */
 				clear_buffer_jbddirty(bh);
-				__jbd2_journal_remove_checkpoint(jh);
 				goto zap_buffer;
 			}
 		}

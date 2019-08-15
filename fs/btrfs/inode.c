@@ -1203,14 +1203,8 @@ next_slot:
 		num_bytes = 0;
 		btrfs_item_key_to_cpu(leaf, &found_key, path->slots[0]);
 
-		if (found_key.objectid > ino)
-			break;
-		if (WARN_ON_ONCE(found_key.objectid < ino) ||
-		    found_key.type < BTRFS_EXTENT_DATA_KEY) {
-			path->slots[0]++;
-			goto next_slot;
-		}
-		if (found_key.type > BTRFS_EXTENT_DATA_KEY ||
+		if (found_key.objectid > ino ||
+		    found_key.type > BTRFS_EXTENT_DATA_KEY ||
 		    found_key.offset > end)
 			break;
 
@@ -2794,7 +2788,7 @@ int btrfs_unlink_inode(struct btrfs_trans_handle *trans,
 	}
 	return ret;
 }
-
+		
 
 /* helper to check if there is any shared block in the path */
 static int check_path_shared(struct btrfs_root *root,

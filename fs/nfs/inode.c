@@ -94,7 +94,7 @@ u64 nfs_compat_user_ino64(u64 fileid)
 {
 #ifdef CONFIG_COMPAT
 	compat_ulong_t ino;
-#else
+#else	
 	unsigned long ino;
 #endif
 
@@ -854,7 +854,7 @@ int nfs_revalidate_inode(struct nfs_server *server, struct inode *inode)
 static int nfs_invalidate_mapping(struct inode *inode, struct address_space *mapping)
 {
 	struct nfs_inode *nfsi = NFS_I(inode);
-
+	
 	if (mapping->nrpages != 0) {
 		int ret = invalidate_inode_pages2(mapping);
 		if (ret < 0)
@@ -1458,11 +1458,7 @@ static int nfs_update_inode(struct inode *inode, struct nfs_fattr *fattr)
 			nfsi->attrtimeo_timestamp = now;
 		}
 	}
-
-	/* Don't declare attrcache up to date if there were no attrs! */
-	if (fattr->valid != 0)
-		invalid &= ~NFS_INO_INVALID_ATTR;
-
+	invalid &= ~NFS_INO_INVALID_ATTR;
 	/* Don't invalidate the data if we were to blame */
 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)
 				|| S_ISLNK(inode->i_mode)))

@@ -633,9 +633,6 @@ static void sil_dev_config(struct ata_device *dev)
 
 	ata_id_c_string(dev->id, model_num, ATA_ID_PROD, sizeof(model_num));
 
-	/* This controller doesn't support trim */
-	dev->horkage |= ATA_HORKAGE_NOTRIM;
-
 	for (n = 0; sil_blacklist[n].product; n++)
 		if (!strcmp(sil_blacklist[n].product, model_num)) {
 			quirks = sil_blacklist[n].quirk;

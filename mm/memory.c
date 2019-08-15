@@ -1432,7 +1432,6 @@ static void zap_page_range_single(struct vm_area_struct *vma, unsigned long addr
 	tlb_finish_mmu(&tlb, address, end);
 }
 
-
 /**
  * zap_vma_ptes - remove ptes mapping the vma
  * @vma: vm_area_struct holding ptes to be zapped
@@ -1456,22 +1455,14 @@ int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
 }
 EXPORT_SYMBOL_GPL(zap_vma_ptes);
 
-static inline bool can_follow_write_pte(pte_t pte, struct page *page,
-					unsigned int flags)
+/*
+ * FOLL_FORCE can write to even unwritable pte's, but only
+ * after we've gone through a COW cycle and they are dirty.
+ */
+static inline bool can_follow_write_pte(pte_t pte, unsigned int flags)
 {
-	if (pte_write(pte))
-		return true;
-
-	/*
-	 * Make sure that we are really following CoWed page. We do not really
-	 * have to care about exclusiveness of the page because we only want
-	 * to ensure that once COWed page hasn't disappeared in the meantime
-	 * or it hasn't been merged to a KSM page.
-	 */
-	if ((flags & FOLL_FORCE) && (flags & FOLL_COW))
-		return page && PageAnon(page) && !PageKsm(page);
-
-	return false;
+	return pte_write(pte) ||
+		((flags & FOLL_FORCE) && (flags & FOLL_COW) && pte_dirty(pte));
 }
 
 /**
@@ -1556,13 +1547,10 @@ split_fallthrough:
 	pte = *ptep;
 	if (!pte_present(pte))
 		goto no_page;
+	if ((flags & FOLL_WRITE) && !can_follow_write_pte(pte, flags))
+		goto unlock;
 
 	page = vm_normal_page(vma, address, pte);
-	if ((flags & FOLL_WRITE) && !can_follow_write_pte(pte, page, flags)) {
-		pte_unmap_unlock(ptep, ptl);
-		return NULL;
-	}
-
 	if (unlikely(!page)) {
 		if ((flags & FOLL_DUMP) ||
 		    !is_zero_pfn(pte_pfn(pte)))
@@ -1605,7 +1593,7 @@ split_fallthrough:
 			unlock_page(page);
 		}
 	}
-
+unlock:
 	pte_unmap_unlock(ptep, ptl);
 out:
 	return page;
@@ -1702,7 +1690,7 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 
 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
 
-	/*
+	/* 
 	 * Require read or write permissions.
 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
 	 */
