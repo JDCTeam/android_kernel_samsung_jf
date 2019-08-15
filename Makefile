@@ -359,12 +359,6 @@ CFLAGS_KERNEL	= -munaligned-access -mfpu=neon-vfpv4
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
-# Optimization flags
-CACHE_FLAGS := --param l1-cache-line-size=16 --param l1-cache-size=16 --param l2-cache-size=2048
-OPTI_FLAGS := -s -pipe -O3 -mcpu=cortex-a15 -mtune=cortex-a15 -mfloat-abi=softfp -mfpu=vfpv4 \
-			  -ffast-math -fmodulo-sched -fmodulo-sched-allow-regmoves \
-		      -funsafe-loop-optimizations -funsafe-math-optimizations 
-
 LINARO_LAZY_FLAGS := -Wno-unused-function -Wno-int-in-bool-context \
 		      -Wno-pointer-compare -Wno-misleading-indentation -Wno-discarded-array-qualifiers \
 		      -Wno-switch-unreachable -Wno-tautological-compare -Wno-duplicate-decl-specifier -Wno-bool-compare \
@@ -384,7 +378,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration -std=gnu89 -fno-pic \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   -std=gnu89 $(OPTI_FLAGS) $(CACHE_FLAGS) $(LINARO_LAZY_FLAGS)
+		   -std=gnu89 $(LINARO_LAZY_FLAGS)
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
