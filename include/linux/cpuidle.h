@@ -206,6 +206,8 @@ struct cpuidle_governor {
 
 extern int cpuidle_register_governor(struct cpuidle_governor *gov);
 extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
+extern void cpuidle_resume(void);
+extern void cpuidle_pause(void);
 
 #ifdef CONFIG_INTEL_IDLE
 extern int intel_idle_cpu_init(int cpu);
