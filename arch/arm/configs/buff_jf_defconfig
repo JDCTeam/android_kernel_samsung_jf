@@ -728,4 +728,8 @@ CONFIG_ZSMALLOC=y
 CONFIG_STAGING=y
 CONFIG_ZRAM_LZ4_COMPRESS=y
 
+# Sleep/wake stuff
+##########################################################
+CONFIG_QUICK_WAKEUP=y
+
 CONFIG_LOCALVERSION="-JDCTeam-BuffCore_9.0b"
