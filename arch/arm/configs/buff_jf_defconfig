@@ -731,5 +731,6 @@ CONFIG_ZRAM_LZ4_COMPRESS=y
 # Sleep/wake stuff
 ##########################################################
 CONFIG_QUICK_WAKEUP=y
+CONFIG_PM_SYNC_BEFORE_SUSPEND=y
 
 CONFIG_LOCALVERSION="-JDCTeam-BuffCore_9.0b"
