@@ -367,6 +367,11 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
+LINARO_LAZY_FLAGS := -Wno-unused-function -Wno-int-in-bool-context \
+		      -Wno-pointer-compare -Wno-misleading-indentation -Wno-discarded-array-qualifiers \
+		      -Wno-switch-unreachable -Wno-tautological-compare -Wno-duplicate-decl-specifier -Wno-bool-compare \
+		      -Wno-switch-bool -Wno-logical-not-parentheses -Wno-bool-operation -Wno-format-overflow -Wno-unused-const-variable -Wno-format-truncation 
+
 KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
@@ -374,7 +379,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   -std=gnu89
+		   -std=gnu89 $(LINARO_LAZY_FLAGS)
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
