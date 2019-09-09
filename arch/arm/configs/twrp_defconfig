@@ -651,7 +651,6 @@ CONFIG_RD_GZIP=y
 # Clocks and voltages
 CONFIG_CPU_VOLTAGE_TABLE=y
 CONFIG_FORCE_FAST_CHARGE=y
-CONFIG_LOW_CPUCLOCKS=y
 
 ##########################################################
 # IOScheds
