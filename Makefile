@@ -367,7 +367,7 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
-LINARO_LAZY_FLAGS := -Wno-unused-function -Wno-int-in-bool-context \
+LINARO_LAZY_FLAGS := -Wno-int-in-bool-context \
 		      -Wno-pointer-compare -Wno-misleading-indentation -Wno-discarded-array-qualifiers \
 		      -Wno-switch-unreachable -Wno-tautological-compare -Wno-duplicate-decl-specifier -Wno-bool-compare \
 		      -Wno-switch-bool -Wno-logical-not-parentheses -Wno-bool-operation -Wno-format-overflow -Wno-unused-const-variable -Wno-format-truncation 
