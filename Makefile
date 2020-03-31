@@ -382,6 +382,7 @@ LINARO_LAZY_FLAGS := -Wno-unused-function -Wno-int-in-bool-context \
 		      -Wno-switch-unreachable -Wno-tautological-compare -Wno-duplicate-decl-specifier -Wno-bool-compare \
 		      -Wno-switch-bool -Wno-logical-not-parentheses -Wno-bool-operation -Wno-format-overflow -Wno-unused-const-variable -Wno-format-truncation 
 
+
 KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
