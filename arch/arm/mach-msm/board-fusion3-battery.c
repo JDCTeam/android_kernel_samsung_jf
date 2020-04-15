@@ -305,8 +305,8 @@ static int sec_bat_get_cable_from_extended_cable_type(
 			break;
 		case ONLINE_SUB_TYPE_SMART_OTG:
 				cable_type = POWER_SUPPLY_TYPE_USB;
-				charge_current_max = 1000;
-				charge_current = 1000;
+				charge_current_max = 1600;
+				charge_current = 1600;
 				break;
 		case ONLINE_SUB_TYPE_SMART_NOTG:
 				cable_type = POWER_SUPPLY_TYPE_MAINS;
@@ -330,13 +330,13 @@ static int sec_bat_get_cable_from_extended_cable_type(
 	if (force_fast_charge == FAST_CHARGE_FORCE_AC) {
 		switch(cable_type) {
 			/* These are low current USB connections,
-			   apply 1.A level to USB */
+			   apply a speculative 1.6A to USB */
 			case POWER_SUPPLY_TYPE_USB:
 			case POWER_SUPPLY_TYPE_USB_ACA:
 			case POWER_SUPPLY_TYPE_CARDOCK:
 			case POWER_SUPPLY_TYPE_OTG:
-				charge_current_max = USB_CHARGE_1000;
-				charge_current     = USB_CHARGE_1000;
+				charge_current_max = USB_CHARGE_1600;
+				charge_current     = USB_CHARGE_1600;
 				break;
 
 		}
@@ -352,14 +352,14 @@ static int sec_bat_get_cable_from_extended_cable_type(
 			case POWER_SUPPLY_TYPE_USB_ACA:
 			case POWER_SUPPLY_TYPE_CARDOCK:
 			case POWER_SUPPLY_TYPE_OTG:
-				charge_current_max = usb_charge_level;
-				charge_current     = usb_charge_level;
+				charge_current_max = USB_CHARGE_1600;
+				charge_current     = USB_CHARGE_1600;
 				break;
 			/* These are AC connections, apply custom AC current
 			   for all of them */
 			case POWER_SUPPLY_TYPE_MAINS:
 				charge_current_max = ac_charge_level;
-				/* but never go above 1.9A */
+				/* but never go above a humungous 1.9A */
 				charge_current     =
 					min(ac_charge_level, MAX_CHARGE_LEVEL);
 				break;
@@ -1116,3 +1116,4 @@ void __init msm8960_init_battery(void)
 }
 
 #endif
+
