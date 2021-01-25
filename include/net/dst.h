@@ -61,11 +61,24 @@ struct dst_entry {
 #define DST_NOPEER		0x0040
 #define DST_FAKE_RTABLE		0x0080
 #define DST_XFRM_TUNNEL		0x0100
+#define DST_XFRM_QUEUE		0x0200
 
 	unsigned short		pending_confirm;
 
 	short			error;
+
+	/* A non-zero value of dst->obsolete forces by-hand validation
+	 * of the route entry.  Positive values are set by the generic
+	 * dst layer to indicate that the entry has been forcefully
+	 * destroyed.
+	 *
+	 * Negative values are used by the implementation layer code to
+	 * force invocation of the dst_ops->check() method.
+	 */
 	short			obsolete;
+#define DST_OBSOLETE_NONE	0
+#define DST_OBSOLETE_DEAD	2
+#define DST_OBSOLETE_FORCE_CHK	-1
 	unsigned short		header_len;	/* more space at head required */
 	unsigned short		trailer_len;	/* space to reserve at tail */
 #ifdef CONFIG_IP_ROUTE_CLASSID
@@ -380,7 +393,7 @@ extern struct dst_entry *dst_destroy(struct dst_entry *dst);
 
 static inline void dst_free(struct dst_entry *dst)
 {
-	if (dst->obsolete > 1)
+	if (dst->obsolete > 0)
 		return;
 	if (!atomic_read(&dst->__refcnt)) {
 		dst = dst_destroy(dst);
