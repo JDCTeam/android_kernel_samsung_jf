@@ -228,6 +228,20 @@ enum fuse_req_state {
 	FUSE_REQ_FINISHED
 };
 
+/** The request IO state (for asynchronous processing) */
+struct fuse_io_priv {
+	int async;
+	spinlock_t lock;
+	unsigned reqs;
+	ssize_t bytes;
+	size_t size;
+	__u64 offset;
+	bool write;
+	int err;
+	struct kiocb *iocb;
+	struct file *file;
+};
+
 /**
  * A request to the client
  */
@@ -334,6 +348,9 @@ struct fuse_req {
 
 	/** Path used for completing d_canonical_path */
 	struct path *canonical_path;
+
+	/** AIO control block */
+	struct fuse_io_priv *io;
 
 	/** Link on fi->writepages */
 	struct list_head writepages_entry;
@@ -527,6 +544,9 @@ struct fuse_conn {
 	/** Does the filesystem want adaptive readdirplus? */
 	unsigned readdirplus_auto:1;
 
+	/** Does the filesystem support asynchronous direct-IO submission? */
+	unsigned async_dio:1;
+
 	/** The number of requests waiting for completion */
 	atomic_t num_waiting;
 
@@ -718,6 +738,11 @@ struct fuse_req *fuse_get_req(struct fuse_conn *fc, unsigned npages);
 struct fuse_req *fuse_get_req_for_background(struct fuse_conn *fc,
 					     unsigned npages);
 
+/*
+ * Increment reference count on request
+ */
+void __fuse_get_request(struct fuse_req *req);
+
 /**
  * Get a request, may fail with -ENOMEM,
  * useful for callers who doesn't use req->pages[]
@@ -832,7 +857,7 @@ int fuse_reverse_inval_entry(struct super_block *sb, u64 parent_nodeid,
 
 int fuse_do_open(struct fuse_conn *fc, u64 nodeid, struct file *file,
 		 bool isdir);
-ssize_t fuse_direct_io(struct file *file, const struct iovec *iov,
+ssize_t fuse_direct_io(struct fuse_io_priv *io, const struct iovec *iov,
 		       unsigned long nr_segs, size_t count, loff_t *ppos,
 		       int write);
 long fuse_do_ioctl(struct file *file, unsigned int cmd, unsigned long arg,
@@ -843,5 +868,8 @@ unsigned fuse_file_poll(struct file *file, poll_table *wait);
 int fuse_dev_release(struct inode *inode, struct file *file);
 
 void fuse_write_update_size(struct inode *inode, loff_t pos);
+
+int fuse_do_setattr(struct inode *inode, struct iattr *attr,
+		    struct file *file);
 
 #endif /* _FS_FUSE_I_H */

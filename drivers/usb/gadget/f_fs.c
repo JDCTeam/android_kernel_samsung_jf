@@ -224,8 +224,8 @@ struct ffs_data {
 	/* File permissions, written once when fs is mounted */
 	struct ffs_file_perms {
 		umode_t				mode;
-		uid_t				uid;
-		gid_t				gid;
+		kuid_t				uid;
+		kgid_t				gid;
 	}				file_perms;
 
 	/*
@@ -340,7 +340,7 @@ ffs_sb_create_file(struct super_block *sb, const char *name, void *data,
 
 static int ffs_mutex_lock(struct mutex *mutex, unsigned nonblock)
 	__attribute__((warn_unused_result, nonnull));
-static char *ffs_prepare_buffer(const char * __user buf, size_t len)
+static char *ffs_prepare_buffer(const char __user *buf, size_t len)
 	__attribute__((warn_unused_result, nonnull));
 
 
@@ -727,7 +727,6 @@ static long ffs_ep0_ioctl(struct file *file, unsigned code, unsigned long value)
 }
 
 static const struct file_operations ffs_ep0_operations = {
-	.owner =	THIS_MODULE,
 	.llseek =	no_llseek,
 
 	.open =		ffs_ep0_open,
@@ -935,29 +934,6 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
 		case FUNCTIONFS_ENDPOINT_REVMAP:
 			ret = epfile->ep->num;
 			break;
-		case FUNCTIONFS_ENDPOINT_DESC:
-		{
-			int desc_idx;
-			struct usb_endpoint_descriptor *desc;
-
-			switch (epfile->ffs->gadget->speed) {
-			case USB_SPEED_SUPER:
-				desc_idx = 2;
-				break;
-			case USB_SPEED_HIGH:
-				desc_idx = 1;
-				break;
-			default:
-				desc_idx = 0;
-			}
-			desc = epfile->ep->descs[desc_idx];
-
-			spin_unlock_irq(&epfile->ffs->eps_lock);
-			ret = copy_to_user((void *)value, desc, sizeof(*desc));
-			if (ret)
-				ret = -EFAULT;
-				return ret;
-			}
 		default:
 			ret = -ENOTTY;
 		}
@@ -970,7 +946,6 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
 }
 
 static const struct file_operations ffs_epfile_operations = {
-	.owner =	THIS_MODULE,
 	.llseek =	no_llseek,
 
 	.open =		ffs_epfile_open,
@@ -1105,8 +1080,8 @@ static int ffs_fs_parse_opts(struct ffs_sb_fill_data *data, char *opts)
 		return 0;
 
 	for (;;) {
-		char *end, *eq, *comma;
 		unsigned long value;
+		char *eq, *comma;
 
 		/* Option limit */
 		comma = strchr(opts, ',');
@@ -1122,8 +1097,7 @@ static int ffs_fs_parse_opts(struct ffs_sb_fill_data *data, char *opts)
 		*eq = 0;
 
 		/* Parse value */
-		value = simple_strtoul(eq + 1, &end, 0);
-		if (unlikely(*end != ',' && *end != 0)) {
+		if (kstrtoul(eq + 1, 0, &value)) {
 			pr_err("%s: invalid value: %s\n", opts, eq + 1);
 			return -EINVAL;
 		}
@@ -1149,12 +1123,21 @@ static int ffs_fs_parse_opts(struct ffs_sb_fill_data *data, char *opts)
 			break;
 
 		case 3:
-			if (!memcmp(opts, "uid", 3))
-				data->perms.uid = value;
-			else if (!memcmp(opts, "gid", 3))
-				data->perms.gid = value;
-			else
+			if (!memcmp(opts, "uid", 3)) {
+				data->perms.uid = make_kuid(current_user_ns(), value);
+				if (!uid_valid(data->perms.uid)) {
+					pr_err("%s: unmapped value: %lu\n", opts, value);
+					return -EINVAL;
+				}
+			} else if (!memcmp(opts, "gid", 3)) {
+				data->perms.gid = make_kgid(current_user_ns(), value);
+				if (!gid_valid(data->perms.gid)) {
+					pr_err("%s: unmapped value: %lu\n", opts, value);
+					return -EINVAL;
+				}
+			} else {
 				goto invalid;
+			}
 			break;
 
 		default:
@@ -1181,8 +1164,8 @@ ffs_fs_mount(struct file_system_type *t, int flags,
 	struct ffs_sb_fill_data data = {
 		.perms = {
 			.mode = S_IFREG | 0600,
-			.uid = 0,
-			.gid = 0
+			.uid = GLOBAL_ROOT_UID,
+			.gid = GLOBAL_ROOT_GID,
 		},
 		.root_mode = S_IFDIR | 0500,
 	};
@@ -1520,7 +1503,21 @@ static int functionfs_bind_config(struct usb_composite_dev *cdev,
 
 static void ffs_func_free(struct ffs_function *func)
 {
+	struct ffs_ep *ep         = func->eps;
+	unsigned count            = func->ffs->eps_count;
+	unsigned long flags;
+
 	ENTER();
+
+	/* cleanup after autoconfig */
+	spin_lock_irqsave(&func->ffs->eps_lock, flags);
+	do {
+		if (ep->ep && ep->req)
+			usb_ep_free_request(ep->ep, ep->req);
+		ep->req = NULL;
+		++ep;
+	} while (--count);
+	spin_unlock_irqrestore(&func->ffs->eps_lock, flags);
 
 	ffs_data_put(func->ffs);
 
@@ -1566,7 +1563,12 @@ static int ffs_func_eps_enable(struct ffs_function *func)
 	spin_lock_irqsave(&func->ffs->eps_lock, flags);
 	do {
 		struct usb_endpoint_descriptor *ds;
-		ds = ep->descs[ep->descs[1] ? 1 : 0];
+		int desc_idx = ffs->gadget->speed == USB_SPEED_HIGH ? 1 : 0;
+		ds = ep->descs[desc_idx];
+		if (!ds) {
+			ret = -EINVAL;
+			break;
+		}
 
 		ep->ep->driver_data = ep;
 		ep->ep->desc = ds;
@@ -2440,7 +2442,7 @@ static int ffs_mutex_lock(struct mutex *mutex, unsigned nonblock)
 		: mutex_lock_interruptible(mutex);
 }
 
-static char *ffs_prepare_buffer(const char * __user buf, size_t len)
+static char *ffs_prepare_buffer(const char __user *buf, size_t len)
 {
 	char *data;
 
