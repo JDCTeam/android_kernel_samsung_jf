@@ -20,7 +20,6 @@
 #ifndef _UAPI_LINUX_BINDER_H
 #define _UAPI_LINUX_BINDER_H
 
-#include <linux/types.h>
 #include <linux/ioctl.h>
 
 #define B_PACK_CHARS(c1, c2, c3, c4) \
@@ -263,16 +262,39 @@ struct binder_node_info_for_ref {
 	__u32            reserved3;
 };
 
+struct binder_freeze_info {
+	__u32            pid;
+	__u32            enable;
+	__u32            timeout_ms;
+};
+
+struct binder_frozen_status_info {
+	__u32            pid;
+
+	/* process received sync transactions since last frozen
+	 * bit 0: received sync transaction after being frozen
+	 * bit 1: new pending sync transaction during freezing
+	 */
+	__u32            sync_recv;
+
+	/* process received async transactions since last frozen */
+	__u32            async_recv;
+};
+
 #define BINDER_WRITE_READ		_IOWR('b', 1, struct binder_write_read)
-#define BINDER_SET_IDLE_TIMEOUT		_IOW('b', 3, __s64)
-#define BINDER_SET_MAX_THREADS		_IOW('b', 5, __u32)
-#define BINDER_SET_IDLE_PRIORITY	_IOW('b', 6, __s32)
-#define BINDER_SET_CONTEXT_MGR		_IOW('b', 7, __s32)
-#define BINDER_THREAD_EXIT		_IOW('b', 8, __s32)
+#define	BINDER_SET_IDLE_TIMEOUT		_IOW('b', 3, __s64)
+#define	BINDER_SET_MAX_THREADS		_IOW('b', 5, __u32)
+#define	BINDER_SET_IDLE_PRIORITY	_IOW('b', 6, __s32)
+#define	BINDER_SET_CONTEXT_MGR		_IOW('b', 7, __s32)
+#define	BINDER_THREAD_EXIT		_IOW('b', 8, __s32)
 #define BINDER_VERSION			_IOWR('b', 9, struct binder_version)
+#define BINDER_SET_INHERIT_FIFO_PRIO	_IO('b', 10)
 #define BINDER_GET_NODE_DEBUG_INFO	_IOWR('b', 11, struct binder_node_debug_info)
 #define BINDER_GET_NODE_INFO_FOR_REF	_IOWR('b', 12, struct binder_node_info_for_ref)
 #define BINDER_SET_CONTEXT_MGR_EXT	_IOW('b', 13, struct flat_binder_object)
+#define BINDER_FREEZE 			_IOW('b', 14, struct binder_freeze_info)
+#define BINDER_GET_FROZEN_INFO 		_IOWR('b', 15, struct binder_frozen_status_info)
+#define BINDER_ENABLE_ONEWAY_SPAM_DETECTION	_IOW('b', 16, __u32)
 
 /*
  * NOTE: Two special error codes you should check for when calling
@@ -301,10 +323,8 @@ struct binder_transaction_data {
 	 * identifying the target and contents of the transaction.
 	 */
 	union {
-		/* target descriptor of command transaction */
-		__u32	handle;
-		/* target descriptor of return transaction */
-		binder_uintptr_t ptr;
+		__u32	handle;	/* target descriptor of command transaction */
+		binder_uintptr_t ptr;	/* target descriptor of return transaction */
 	} target;
 	binder_uintptr_t	cookie;	/* target object cookie */
 	__u32		code;		/* transaction command */
@@ -349,7 +369,7 @@ struct binder_ptr_cookie {
 struct binder_handle_cookie {
 	__u32 handle;
 	binder_uintptr_t cookie;
-} __packed;
+} __attribute__((packed));
 
 struct binder_pri_desc {
 	__s32 priority;
@@ -450,8 +470,21 @@ enum binder_driver_return_protocol {
 
 	BR_FAILED_REPLY = _IO('r', 17),
 	/*
-	 * The the last transaction (either a bcTRANSACTION or
+	 * The last transaction (either a bcTRANSACTION or
 	 * a bcATTEMPT_ACQUIRE) failed (e.g. out of memory).  No parameters.
+	 */
+
+	BR_FROZEN_REPLY = _IO('r', 18),
+	/*
+	 * The target of the last transaction (either a bcTRANSACTION or
+	 * a bcATTEMPT_ACQUIRE) is frozen.  No parameters.
+	 */
+
+	BR_ONEWAY_SPAM_SUSPECT = _IO('r', 19),
+	/*
+	 * Current process sent too many oneway calls to target, and the last
+	 * asynchronous transaction makes the allocated async buffer size exceed
+	 * detection threshold.  No parameters.
 	 */
 };
 
@@ -512,15 +545,13 @@ enum binder_driver_command_protocol {
 	 * of looping threads it has available.
 	 */
 
-	BC_REQUEST_DEATH_NOTIFICATION = _IOW('c', 14,
-						struct binder_handle_cookie),
+	BC_REQUEST_DEATH_NOTIFICATION = _IOW('c', 14, struct binder_handle_cookie),
 	/*
 	 * int: handle
 	 * void *: cookie
 	 */
 
-	BC_CLEAR_DEATH_NOTIFICATION = _IOW('c', 15,
-						struct binder_handle_cookie),
+	BC_CLEAR_DEATH_NOTIFICATION = _IOW('c', 15, struct binder_handle_cookie),
 	/*
 	 * int: handle
 	 * void *: cookie
@@ -539,3 +570,5 @@ enum binder_driver_command_protocol {
 };
 
 #endif /* _UAPI_LINUX_BINDER_H */
+
+
