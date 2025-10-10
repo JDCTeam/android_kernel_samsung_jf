@@ -18,10 +18,14 @@ jobs:
     - name: Building Kernel
       run: |
         export KBUILD_BUILD_USER=notnoelchannel
-        export KBUILD_BUILD_HOST=unlegacy-devices
+        export KBUILD_BUILD_HOST=JDCTeam
         export CROSS_COMPILE=/opt/toolchains/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
         make -j$(nproc --all) ARCH=arm VARIANT_DEFCONFIG=jf_eur_defconfig lineageos_jf_defconfig
-        make -j$(nproc --all)
+        # run menuconfig
+        export KCONFIG_NOTIMESTAMP=true
+        make menuconfig ARCH=arm
+        make savedefconfig ARCH=arm
+        make $(nproc --all)
     - name: Moving Output # CI only
       run: |
         mkdir -p /home/runner/work/output
