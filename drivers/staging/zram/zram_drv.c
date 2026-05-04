@@ -29,11 +29,40 @@
 #include <linux/genhd.h>
 #include <linux/highmem.h>
 #include <linux/slab.h>
-#include <linux/lzo.h>
+#include <linux/lz4.h>
 #include <linux/string.h>
 #include <linux/vmalloc.h>
+#include <linux/percpu.h>
+#include <linux/wait.h>
 
 #include "zram_drv.h"
+
+/*
+ * LZ4 compression/decompression wrappers.
+ * LZ4 provides significantly faster compression and decompression than LZO,
+ * which is critical for zram performance on mobile devices.
+ */
+static inline int zram_compress(const unsigned char *src, size_t src_len,
+				unsigned char *dst, size_t *dst_len, void *wrkmem)
+{
+	int out_len = LZ4_compress_default((const char *)src, (char *)dst,
+					   src_len, *dst_len, wrkmem);
+	if (!out_len)
+		return -1;
+	*dst_len = out_len;
+	return 0;
+}
+
+static inline int zram_decompress(const unsigned char *src, size_t src_len,
+				  unsigned char *dst, size_t *dst_len)
+{
+	int out_len = LZ4_decompress_safe((const char *)src, (char *)dst,
+					  src_len, *dst_len);
+	if (out_len < 0)
+		return out_len;
+	*dst_len = out_len;
+	return 0;
+}
 
 /* Globals */
 static int zram_major;
@@ -203,6 +232,28 @@ static inline int is_partial_io(struct bio_vec *bvec)
 	return bvec->bv_len != PAGE_SIZE;
 }
 
+/*
+ * Get a per-cpu compression stream. We grab the stream for the current CPU
+ * and lock its mutex. Since we hold a mutex (sleepable), we may migrate to
+ * another CPU after put_cpu(), but that's fine -- we still have exclusive
+ * access to this particular stream via the mutex. This design allows all
+ * CPU cores to perform compression/decompression in parallel.
+ */
+static struct zcomp_strm *zram_stream_get(struct zram *zram)
+{
+	int cpu = get_cpu();
+	struct zcomp_strm *strm = per_cpu_ptr(zram->streams, cpu);
+
+	mutex_lock(&strm->lock);
+	put_cpu();
+	return strm;
+}
+
+static void zram_stream_put(struct zcomp_strm *strm)
+{
+	mutex_unlock(&strm->lock);
+}
+
 static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 			  u32 index, int offset, struct bio *bio)
 {
@@ -234,7 +285,7 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 	}
 
 	if (is_partial_io(bvec)) {
-		/* Use  a temporary buffer to decompress the page */
+		/* Use a temporary buffer to decompress the page */
 		uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
 		if (!uncmem) {
 			pr_info("Error allocating temp memory!\n");
@@ -247,11 +298,16 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 		uncmem = user_mem;
 	clen = PAGE_SIZE;
 
-	cmem = zs_map_object(zram->mem_pool, (unsigned long)zram->table[index].handle, ZS_MM_RW);
+	cmem = zs_map_object(zram->mem_pool,
+			     (unsigned long)zram->table[index].handle,
+			     ZS_MM_RO);
 
-	ret = lzo1x_decompress_safe(cmem + sizeof(*zheader),
-				    zram->table[index].size,
-				    uncmem, &clen);
+	ret = zram_decompress(cmem + sizeof(*zheader),
+			      zram->table[index].size,
+			      uncmem, &clen);
+
+	zs_unmap_object(zram->mem_pool,
+			(unsigned long)zram->table[index].handle);
 
 	if (is_partial_io(bvec)) {
 		memcpy(user_mem + bvec->bv_offset, uncmem + offset,
@@ -259,11 +315,10 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 		kfree(uncmem);
 	}
 
-	zs_unmap_object(zram->mem_pool, (unsigned long)zram->table[index].handle);
 	kunmap_atomic(user_mem);
 
 	/* Should NEVER happen. Return bio error if it does. */
-	if (unlikely(ret != LZO_E_OK)) {
+	if (unlikely(ret)) {
 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
 		zram_stat64_inc(zram, &zram->stats.failed_reads);
 		return ret;
@@ -287,22 +342,26 @@ static int zram_read_before_write(struct zram *zram, char *mem, u32 index)
 		return 0;
 	}
 
-	cmem = zs_map_object(zram->mem_pool, (unsigned long)zram->table[index].handle, ZS_MM_RO);
+	cmem = zs_map_object(zram->mem_pool,
+			     (unsigned long)zram->table[index].handle,
+			     ZS_MM_RO);
 
 	/* Page is stored uncompressed since it's incompressible */
 	if (unlikely(zram_test_flag(zram, index, ZRAM_UNCOMPRESSED))) {
 		memcpy(mem, cmem, PAGE_SIZE);
-		kunmap_atomic(cmem);
+		zs_unmap_object(zram->mem_pool,
+				(unsigned long)zram->table[index].handle);
 		return 0;
 	}
 
-	ret = lzo1x_decompress_safe(cmem + sizeof(*zheader),
-				    zram->table[index].size,
-				    mem, &clen);
-	zs_unmap_object(zram->mem_pool, (unsigned long)zram->table[index].handle);
+	ret = zram_decompress(cmem + sizeof(*zheader),
+			      zram->table[index].size,
+			      (unsigned char *)mem, &clen);
+	zs_unmap_object(zram->mem_pool,
+			(unsigned long)zram->table[index].handle);
 
 	/* Should NEVER happen. Return bio error if it does. */
-	if (unlikely(ret != LZO_E_OK)) {
+	if (unlikely(ret)) {
 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
 		zram_stat64_inc(zram, &zram->stats.failed_reads);
 		return ret;
@@ -321,9 +380,9 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	struct zobj_header *zheader;
 	struct page *page, *page_store;
 	unsigned char *user_mem, *cmem, *src, *uncmem = NULL;
+	struct zcomp_strm *strm;
 
 	page = bvec->bv_page;
-	src = zram->compress_buffer;
 
 	if (is_partial_io(bvec)) {
 		/*
@@ -369,15 +428,21 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 		goto out;
 	}
 
-	ret = lzo1x_1_compress(uncmem, PAGE_SIZE, src, &clen,
-			       zram->compress_workmem);
+	/* Get a per-cpu compression stream for parallel compression */
+	strm = zram_stream_get(zram);
+	src = strm->buffer;
+	clen = 2 * PAGE_SIZE;
+
+	ret = zram_compress(uncmem, PAGE_SIZE, src, &clen, strm->workmem);
 
 	kunmap_atomic(user_mem);
 	if (is_partial_io(bvec))
-			kfree(uncmem);
+		kfree(uncmem);
 
-	if (unlikely(ret != LZO_E_OK)) {
-		pr_err("Compression failed! err=%d\n", ret);
+	if (unlikely(ret)) {
+		zram_stream_put(strm);
+		pr_err("Compression failed!\n");
+		ret = -EIO;
 		goto out;
 	}
 
@@ -387,6 +452,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	 * errors which has side effect of hanging the system.
 	 */
 	if (unlikely(clen > max_zpage_size)) {
+		zram_stream_put(strm);
 		clen = PAGE_SIZE;
 		page_store = alloc_page(GFP_NOIO | __GFP_HIGHMEM);
 		if (unlikely(!page_store)) {
@@ -407,6 +473,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 
 	handle = (void *)zs_malloc(zram->mem_pool, clen + sizeof(*zheader));
 	if (!handle) {
+		zram_stream_put(strm);
 		pr_info("Error allocating memory for compressed "
 			"page: %u, size=%zu\n", index, clen);
 		ret = -ENOMEM;
@@ -431,6 +498,7 @@ memstore:
 		kunmap_atomic(src);
 	} else {
 		zs_unmap_object(zram->mem_pool, (unsigned long)handle);
+		zram_stream_put(strm);
 	}
 
 	zram->table[index].handle = handle;
@@ -450,20 +518,33 @@ out:
 	return ret;
 }
 
+/*
+ * Per-slot bit spinlock. This allows multiple CPUs to read/write
+ * different zram pages in parallel without any global serialization.
+ * Only accesses to the same page index are serialized.
+ */
+static inline void zram_slot_lock(struct zram *zram, u32 index)
+{
+	while (test_and_set_bit(ZRAM_LOCK, (unsigned long *)&zram->table[index].flags))
+		cpu_relax();
+}
+
+static inline void zram_slot_unlock(struct zram *zram, u32 index)
+{
+	clear_bit(ZRAM_LOCK, (unsigned long *)&zram->table[index].flags);
+}
+
 static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 			int offset, struct bio *bio, int rw)
 {
 	int ret;
 
-	if (rw == READ) {
-		down_read(&zram->lock);
+	zram_slot_lock(zram, index);
+	if (rw == READ)
 		ret = zram_bvec_read(zram, bvec, index, offset, bio);
-		up_read(&zram->lock);
-	} else {
-		down_write(&zram->lock);
+	else
 		ret = zram_bvec_write(zram, bvec, index, offset);
-		up_write(&zram->lock);
-	}
+	zram_slot_unlock(zram, index);
 
 	return ret;
 }
@@ -584,18 +665,62 @@ error:
 	bio_io_error(bio);
 }
 
+static void zram_free_streams(struct zram *zram)
+{
+	int cpu;
+
+	if (!zram->streams)
+		return;
+
+	for_each_possible_cpu(cpu) {
+		struct zcomp_strm *strm = per_cpu_ptr(zram->streams, cpu);
+
+		if (strm->workmem)
+			vfree(strm->workmem);
+		if (strm->buffer)
+			free_pages((unsigned long)strm->buffer, 1);
+	}
+	free_percpu(zram->streams);
+	zram->streams = NULL;
+}
+
+static int zram_alloc_streams(struct zram *zram)
+{
+	int cpu;
+
+	zram->streams = alloc_percpu(struct zcomp_strm);
+	if (!zram->streams)
+		return -ENOMEM;
+
+	for_each_possible_cpu(cpu) {
+		struct zcomp_strm *strm = per_cpu_ptr(zram->streams, cpu);
+
+		mutex_init(&strm->lock);
+		strm->workmem = vmalloc(LZ4_MEM_COMPRESS);
+		if (!strm->workmem)
+			goto fail;
+
+		strm->buffer = (void *)__get_free_pages(
+					GFP_KERNEL | __GFP_ZERO, 1);
+		if (!strm->buffer)
+			goto fail;
+	}
+
+	return 0;
+
+fail:
+	zram_free_streams(zram);
+	return -ENOMEM;
+}
+
 void __zram_reset_device(struct zram *zram)
 {
 	size_t index;
 
 	zram->init_done = 0;
 
-	/* Free various per-device buffers */
-	kfree(zram->compress_workmem);
-	free_pages((unsigned long)zram->compress_buffer, 1);
-
-	zram->compress_workmem = NULL;
-	zram->compress_buffer = NULL;
+	/* Free per-cpu compression streams */
+	zram_free_streams(zram);
 
 	/* Free all pages that are still in this zram device */
 	for (index = 0; index < zram->disksize >> PAGE_SHIFT; index++) {
@@ -642,18 +767,10 @@ int zram_init_device(struct zram *zram)
 
 	zram_set_disksize(zram, totalram_pages << PAGE_SHIFT);
 
-	zram->compress_workmem = kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
-	if (!zram->compress_workmem) {
-		pr_err("Error allocating compressor working memory!\n");
-		ret = -ENOMEM;
-		goto fail_no_table;
-	}
-
-	zram->compress_buffer =
-		(void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 1);
-	if (!zram->compress_buffer) {
-		pr_err("Error allocating compressor buffer space\n");
-		ret = -ENOMEM;
+	/* Allocate per-cpu compression streams for multi-core compression */
+	ret = zram_alloc_streams(zram);
+	if (ret) {
+		pr_err("Error allocating per-cpu compression streams\n");
 		goto fail_no_table;
 	}
 
@@ -700,7 +817,9 @@ static void zram_slot_free_notify(struct block_device *bdev,
 	struct zram *zram;
 
 	zram = bdev->bd_disk->private_data;
+	zram_slot_lock(zram, index);
 	zram_free_page(zram, index);
+	zram_slot_unlock(zram, index);
 	zram_stat64_inc(zram, &zram->stats.notify_free);
 }
 
@@ -713,7 +832,6 @@ static int create_device(struct zram *zram, int device_id)
 {
 	int ret = -ENOMEM;
 
-	init_rwsem(&zram->lock);
 	init_rwsem(&zram->init_lock);
 	spin_lock_init(&zram->stat64_lock);
 
@@ -874,3 +992,4 @@ module_exit(zram_exit);
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Nitin Gupta <ngupta@vflare.org>");
 MODULE_DESCRIPTION("Compressed RAM Block Device");
+

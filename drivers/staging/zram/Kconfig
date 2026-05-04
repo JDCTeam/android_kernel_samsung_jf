@@ -1,8 +1,8 @@
 config ZRAM
 	tristate "Compressed RAM block device support"
 	depends on BLOCK && SYSFS && ZSMALLOC
-	select LZO_COMPRESS
-	select LZO_DECOMPRESS
+	select LZ4_COMPRESS
+	select LZ4_DECOMPRESS
 	default n
 	help
 	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
@@ -13,8 +13,13 @@ config ZRAM
 	  It has several use cases, for example: /tmp storage, use as swap
 	  disks and maybe many more.
 
+	  This version uses LZ4 compression for significantly faster
+	  compress/decompress performance compared to LZO, and supports
+	  multi-core parallel compression using per-cpu buffers.
+
 	  See zram.txt for more information.
 	  Project home: http://compcache.googlecode.com/
+
 
 config ZRAM_DEBUG
 	bool "Compressed RAM block device debug support"

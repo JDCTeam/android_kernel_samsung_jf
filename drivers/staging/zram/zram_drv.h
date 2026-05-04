@@ -74,6 +74,9 @@ enum zram_pageflags {
 	/* Page consists entirely of zeros */
 	ZRAM_ZERO,
 
+	/* Page slot is locked for exclusive access */
+	ZRAM_LOCK,
+
 	__NR_ZRAM_PAGEFLAGS,
 };
 
@@ -84,8 +87,8 @@ struct table {
 	void *handle;
 	u16 size;	/* object size (excluding header) */
 	u8 count;	/* object ref count (not yet used) */
-	u8 flags;
-} __attribute__((aligned(4)));
+	unsigned long flags;
+};
 
 struct zram_stats {
 	u64 compr_size;		/* compressed size of pages stored */
@@ -101,14 +104,18 @@ struct zram_stats {
 	u32 pages_expand;	/* % of incompressible pages */
 };
 
+/* Per-cpu compression buffers */
+struct zcomp_strm {
+	void *workmem;
+	void *buffer;		/* 2 pages for compression output */
+	struct mutex lock;
+};
+
 struct zram {
 	struct zs_pool *mem_pool;
-	void *compress_workmem;
-	void *compress_buffer;
+	struct zcomp_strm *__percpu streams;
 	struct table *table;
 	spinlock_t stat64_lock;	/* protect 64-bit stats */
-	struct rw_semaphore lock; /* protect compression buffers and table
-				   * against concurrent read and writes */
 	struct request_queue *queue;
 	struct gendisk *disk;
 	int init_done;
