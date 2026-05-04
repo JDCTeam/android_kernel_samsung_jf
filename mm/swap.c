@@ -848,11 +848,12 @@ void __init swap_setup(void)
 	bdi_init(swapper_space.backing_dev_info);
 #endif
 
-	/* Use a smaller cluster for small-memory machines */
-	if (megs < 16)
-		page_cluster = 2;
-	else
-		page_cluster = 3;
+	/*
+	 * page_cluster controls how many pages are read from swap in one go.
+	 * Set to 0 for zram: since zram is RAM-backed there is no seek penalty,
+	 * and reading ahead extra pages only wastes CPU decompression cycles.
+	 */
+	page_cluster = 0;
 	/*
 	 * Right now other parts of the system means that we
 	 * _really_ don't want to cluster much more

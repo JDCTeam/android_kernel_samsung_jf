@@ -146,7 +146,13 @@ struct mem_cgroup_zone {
 /*
  * From 0 .. 100.  Higher means more swappy.
  */
-int vm_swappiness = 60;
+/*
+ * vm_swappiness: set to 100 for zram-backed swap. Since zram compresses
+ * pages in RAM, swapping is cheap and we want the kernel to swap
+ * aggressively to free page cache for active use.
+ * Range: 0 (never swap) - 100 (swap aggressively).
+ */
+int vm_swappiness = 100;
 long vm_total_pages;	/* The total number of pages which the VM controls */
 
 #ifdef CONFIG_RUNTIME_COMPCACHE
