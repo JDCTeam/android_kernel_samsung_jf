@@ -24,7 +24,7 @@ SCHED_FEAT(AFFINE_WAKEUPS, true)
  * wakeup-preemption), since its likely going to consume data we
  * touched, increases cache locality.
  */
-SCHED_FEAT(NEXT_BUDDY, false)
+SCHED_FEAT(NEXT_BUDDY, true)
 
 /*
  * Prefer to schedule the task that ran last (when we did
@@ -44,7 +44,11 @@ SCHED_FEAT(CACHE_HOT_BUDDY, true)
  */
 SCHED_FEAT(ARCH_POWER, false)
 
-SCHED_FEAT(HRTICK, false)
+/* High-resolution tick: delivers per-task tick via hrtimer for finer
+ * preemption granularity. Improves UI responsiveness when enabled
+ * together with HIGH_RES_TIMERS and HZ_1000.
+ */
+SCHED_FEAT(HRTICK, true)
 SCHED_FEAT(DOUBLE_TICK, false)
 SCHED_FEAT(LB_BIAS, true)
 
