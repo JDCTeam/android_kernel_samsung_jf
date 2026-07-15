@@ -4823,6 +4823,21 @@ static int parse_options(struct super_block *sb, char *options, int silent,
 	}
 
 out:
+	/*
+	 * Android vold mounts public exFAT volumes with iocharset=utf8, but
+	 * without sdFAT's separate "utf8" mount option.
+	 *
+	 * In sdFAT, iocharset=utf8 alone still uses the legacy NLS char2uni()
+	 * path, which can handle BMP Unicode such as ü/ä/ö/€, but cannot create
+	 * non-BMP names that need UTF-16 surrogate pairs, e.g. emoji.
+	 *
+	 * Treat iocharset=utf8 as UTF-8 mode for exFAT mounts so the driver uses
+	 * utf8s_to_utf16s()/utf16s_to_utf8s() for filename conversion.
+	 */
+	if (!opts->utf8 && !strcmp(sb->s_type->name, "exfat") &&
+			!strcmp(opts->iocharset, "utf8"))
+		opts->utf8 = 1;
+
 	if (opts->allow_utime == (unsigned short) -1)
 		opts->allow_utime = ~opts->fs_dmask & (S_IWGRP | S_IWOTH);
 
